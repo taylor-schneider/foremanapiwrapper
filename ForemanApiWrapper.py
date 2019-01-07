@@ -1,6 +1,7 @@
 import requests
 from requests.auth import HTTPBasicAuth
 import json
+from ForemanApiWrapper.ForemanApiCallException import ForemanApiCallException
 
 class ForemanApiWrapper():
 
@@ -36,7 +37,13 @@ class ForemanApiWrapper():
 
             return obj
         except Exception as e:
-            raise Exception(ForemanApiWrapper.ErrorMessage_ApiCall) from e
+            raise ForemanApiCallException(
+                ForemanApiWrapper.ErrorMessage_ApiCall,
+                endpoint,
+                method,
+                results,
+                arguments,
+                headers) from e
 
 
 
