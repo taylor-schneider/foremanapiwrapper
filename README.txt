@@ -1,2 +1,4 @@
-pip3 install requests
-pip3 install unittests
+# Dependencies
+#
+#       The InstallDependencies.sh script will install yum and pip packages
+#       which are required to run this code.
