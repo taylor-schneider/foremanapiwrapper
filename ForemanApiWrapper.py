@@ -13,7 +13,7 @@ class ForemanApiWrapper():
         self.Url = url
         self.VerifySsl = verifySsl
 
-    def MakeApiCall(self, endpoint, method, arguments=None):
+    def MakeApiCall(self, endpoint, method, arguments=None, headers=None):
 
         try:
             # Make the api call
@@ -23,7 +23,7 @@ class ForemanApiWrapper():
 
             results = None
             if arguments:
-                results = func(url, auth=self.Auth, verify=self.VerifySsl, json=arguments)
+                results = func(url, auth=self.Auth, verify=self.VerifySsl, json=arguments, headers=headers)
             else:
                 results = func(url, auth=self.Auth, verify=self.VerifySsl)
 
