@@ -4,7 +4,7 @@ from ForemanApiWrapper.ForemanApiWrapper import ForemanApiWrapper
 class Test_ForemanApiWrapper(TestCase):
 
     def __init__(self, *args, **kwargs):
-        super(Test_ForemanApiWrapper, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.username = "admin"
         self.password = "password"
         self.url = "https://15.4.7.1"
