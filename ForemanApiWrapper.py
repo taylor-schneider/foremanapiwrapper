@@ -37,13 +37,29 @@ class ForemanApiWrapper():
 
             return obj
         except Exception as e:
-            raise ForemanApiCallException(
-                ForemanApiWrapper.ErrorMessage_ApiCall,
-                endpoint,
-                method,
-                results,
-                arguments,
-                headers) from e
+
+            if hasattr(results, "_content"):
+                jsonString = results.content.decode("utf-8")
+                obj = json.loads(jsonString)
+                fullMessage = obj['error']["full_messages"][0]
+
+                raise ForemanApiCallException(
+                    fullMessage,
+                    endpoint,
+                    method,
+                    results,
+                    arguments,
+                    headers) from e
+
+            else:
+
+                raise ForemanApiCallException(
+                    ForemanApiWrapper.ErrorMessage_ApiCall,
+                    endpoint,
+                    method,
+                    results,
+                    arguments,
+                    headers) from e
 
 
 
