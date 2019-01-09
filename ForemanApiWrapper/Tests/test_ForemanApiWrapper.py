@@ -1,5 +1,5 @@
 from unittest import TestCase
-from ForemanApiWrapper import ForemanApiWrapper
+from ForemanApiWrapper.ForemanApiWrapper import ForemanApiWrapper
 
 class Test_ForemanApiWrapper(TestCase):
 
@@ -31,7 +31,9 @@ class Test_ForemanApiWrapper(TestCase):
 
         with self.assertRaises(Exception) as e:
             api.MakeApiCall(endpoint, method)
-        self.assertEqual(ForemanApiWrapper.ErrorMessage_ApiCall, e.exception.args[0])
+
+        expectedError = 'Unable to authenticate user {0}'.format(username)
+        self.assertEqual(expectedError, e.exception.args[0])
 
     def test_MakeApiCall_Success_CreateEnvironment(self):
 
@@ -46,4 +48,4 @@ class Test_ForemanApiWrapper(TestCase):
         }
 
         response = api.MakeApiCall(endpoint, method, arguments)
-        self.asserTrue("created_at" in response.keys())
+        self.assertTrue("created_at" in response.keys())

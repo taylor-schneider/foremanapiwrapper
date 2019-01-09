@@ -41,17 +41,21 @@ class ForemanApiWrapper():
             if hasattr(results, "_content"):
                 jsonString = results.content.decode("utf-8")
                 obj = json.loads(jsonString)
-                fullMessage = obj['error']["full_messages"][0]
+                error = obj['error']
 
-                raise ForemanApiCallException(
-                    fullMessage,
-                    endpoint,
-                    method,
-                    results,
-                    arguments,
-                    headers) from e
-
-            else:
+                msg = None
+                if "full_messages" in error.keys():
+                    msg = error["full_messages"][0]
+                if "message" in error.keys():
+                    msg = error["message"]
+                if msg:
+                    raise ForemanApiCallException(
+                        msg,
+                        endpoint,
+                        method,
+                        results,
+                        arguments,
+                        headers) from e
 
                 raise ForemanApiCallException(
                     ForemanApiWrapper.ErrorMessage_ApiCall,
