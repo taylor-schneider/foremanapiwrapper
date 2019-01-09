@@ -1,7 +1,8 @@
 import requests
 from requests.auth import HTTPBasicAuth
 import json
-from ForemanApiWrapper.ForemanApiCallException import ForemanApiCallException
+
+from ForemanApiWrapper.ForemanApiWrapper.ForemanApiCallException import ForemanApiCallException
 
 class ForemanApiWrapper():
 
