@@ -1,8 +1,12 @@
 import requests
 from requests.auth import HTTPBasicAuth
 import json
+import logging
 
 from ForemanApiWrapper.ForemanApiWrapper.ForemanApiCallException import ForemanApiCallException
+
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)
 
 class ForemanApiWrapper():
 
@@ -22,6 +26,13 @@ class ForemanApiWrapper():
             m = str.lower(method)
             func = getattr(requests, m)
             url = self.Url + endpoint
+
+            logger.debug("Making api call [{0}] {1}".format(method.upper(), url))
+            if arguments:
+                logger.debug("Json body:")
+                prettyJson = json.dumps(arguments, sort_keys=True, indent=4)
+                for line in prettyJson.split("\n"):
+                    logger.debug(line)
 
             results = None
             if arguments:
@@ -66,5 +77,19 @@ class ForemanApiWrapper():
                     arguments,
                     headers) from e
 
+    @staticmethod
+    def _GetHeadersForHttpMethod(httpMethod):
 
+        # Foreman's API specifies that put and post api calls must set the Content-type header
+        # If we dont, we will get an exception as follows:
+        #       Exception.args[0]:
+        #           '415 Client Error: Unsupported Media Type for url: https://15.4.7.1/api/environments'
+        #
+        #       response._content:
+        #           b'{\n  "error": {"message":"\'Content-Type: \' is unsupported in API v2 for POST and PUT requests. Please use \'Content-Type: application/json\'."}\n}\n'
 
+        headers = {}
+        if httpMethod.lower() in ["put", "post"]:
+            headers = {'Content-type': 'application/json', "charset": "utf-8"}
+
+        return headers
