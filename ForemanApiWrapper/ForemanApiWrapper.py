@@ -50,32 +50,40 @@ class ForemanApiWrapper():
             return obj
         except Exception as e:
 
+            # An exception can be raised in several ways
+            # In some cases, a non 200 response may return a result object
+            # The result may contain json representation of an error
+
             if hasattr(results, "_content"):
                 jsonString = results.content.decode("utf-8")
-                obj = json.loads(jsonString)
-                error = obj['error']
+                try:
+                    resultObj = json.loads(jsonString)
+                    error = obj['error']
 
-                msg = None
-                if "full_messages" in error.keys():
-                    msg = error["full_messages"][0]
-                if "message" in error.keys():
-                    msg = error["message"]
-                if msg:
-                    raise ForemanApiCallException(
-                        msg,
-                        endpoint,
-                        method,
-                        results,
-                        arguments,
-                        headers) from e
+                    msg = None
+                    if "full_messages" in error.keys():
+                        msg = error["full_messages"][0]
+                    if "message" in error.keys():
+                        msg = error["message"]
+                    if msg:
+                        raise ForemanApiCallException(
+                            msg,
+                            endpoint,
+                            method,
+                            results,
+                            arguments,
+                            headers) from e
+                except:
+                    pass
 
-                raise ForemanApiCallException(
-                    ForemanApiWrapper.ErrorMessage_ApiCall,
-                    endpoint,
-                    method,
-                    results,
-                    arguments,
-                    headers) from e
+            # If we got here, the api did not return a json error
+            raise ForemanApiCallException(
+                ForemanApiWrapper.ErrorMessage_ApiCall,
+                endpoint,
+                method,
+                results,
+                arguments,
+                headers) from e
 
     @staticmethod
     def _GetHeadersForHttpMethod(httpMethod):
