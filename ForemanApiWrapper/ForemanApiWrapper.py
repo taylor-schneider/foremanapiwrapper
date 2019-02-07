@@ -54,27 +54,26 @@ class ForemanApiWrapper():
             # In some cases, a non 200 response may return a result object
             # The result may contain json representation of an error
 
-            if hasattr(results, "_content"):
+            msg = None
+            try:
                 jsonString = results.content.decode("utf-8")
-                try:
-                    resultObj = json.loads(jsonString)
-                    error = obj['error']
+                resultObj = json.loads(jsonString)
+                error = resultObj['error']
+                if "full_messages" in error.keys():
+                    msg = error["full_messages"][0]
+                if "message" in error.keys():
+                    msg = error["message"]
+            except:
+                pass
 
-                    msg = None
-                    if "full_messages" in error.keys():
-                        msg = error["full_messages"][0]
-                    if "message" in error.keys():
-                        msg = error["message"]
-                    if msg:
-                        raise ForemanApiCallException(
-                            msg,
-                            endpoint,
-                            method,
-                            results,
-                            arguments,
-                            headers) from e
-                except:
-                    pass
+            if msg:
+                raise ForemanApiCallException(
+                    msg,
+                    endpoint,
+                    method,
+                    results,
+                    arguments,
+                    headers) from e
 
             # If we got here, the api did not return a json error
             raise ForemanApiCallException(
