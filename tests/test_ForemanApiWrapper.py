@@ -11,7 +11,7 @@ class Test_ForemanApiWrapper(TestCase):
         self.url = "https://15.4.7.1"
         self.verifySsl = False
 
-    def test_MakeApiCall_Success(self):
+    def test_make_api_call_success(self):
 
         api = ForemanApiWrapper(self.username, self.password, self.url, self.verifySsl)
 
@@ -20,7 +20,7 @@ class Test_ForemanApiWrapper(TestCase):
 
         api.make_api_call(endpoint, method)
 
-    def test_MakeApiCall_Failure_InvalidCredentials(self):
+    def test_make_api_call_failure_invalid_credentials(self):
 
         username = "fake_user"
         password = "fake_password"
@@ -36,7 +36,7 @@ class Test_ForemanApiWrapper(TestCase):
         expected_error = 'Unable to authenticate user {0}'.format(username)
         self.assertEqual(expected_error, e.exception.args[0])
 
-    def test_MakeApiCall_Success_CreateEnvironment(self):
+    def test_make_api_call_success_create_environment(self):
 
         api = ForemanApiWrapper(self.username, self.password, self.url, self.verifySsl)
 
