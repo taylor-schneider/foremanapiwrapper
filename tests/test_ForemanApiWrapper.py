@@ -1,10 +1,11 @@
 from unittest import TestCase
-from ForemanApiWrapper.ForemanApiWrapper import ForemanApiWrapper
+from ForemanApiWrapper import ForemanApiWrapper
+
 
 class Test_ForemanApiWrapper(TestCase):
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super(self).__init__(*args, **kwargs)
         self.username = "admin"
         self.password = "password"
         self.url = "https://15.4.7.1"
@@ -17,7 +18,7 @@ class Test_ForemanApiWrapper(TestCase):
         endpoint = "/api/environments"
         method = "get"
 
-        api.MakeApiCall(endpoint, method)
+        api.make_api_call(endpoint, method)
 
     def test_MakeApiCall_Failure_InvalidCredentials(self):
 
@@ -30,10 +31,10 @@ class Test_ForemanApiWrapper(TestCase):
         method = "get"
 
         with self.assertRaises(Exception) as e:
-            api.MakeApiCall(endpoint, method)
+            api.make_api_call(endpoint, method)
 
-        expectedError = 'Unable to authenticate user {0}'.format(username)
-        self.assertEqual(expectedError, e.exception.args[0])
+        expected_error = 'Unable to authenticate user {0}'.format(username)
+        self.assertEqual(expected_error, e.exception.args[0])
 
     def test_MakeApiCall_Success_CreateEnvironment(self):
 
@@ -47,5 +48,5 @@ class Test_ForemanApiWrapper(TestCase):
             }
         }
 
-        response = api.MakeApiCall(endpoint, method, arguments)
+        response = api.make_api_call(endpoint, method, arguments)
         self.assertTrue("created_at" in response.keys())
