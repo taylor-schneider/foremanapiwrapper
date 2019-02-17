@@ -1,10 +1,8 @@
 import requests
 import json
 import logging
-import os
 import sys
 from requests.auth import HTTPBasicAuth
-from future.utils import raise_from
 from ForemanApiCallException import ForemanApiCallException
 
 
@@ -12,7 +10,7 @@ logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 
 
-PY3  = sys.version_info >= (3, 0)
+PY3 = sys.version_info >= (3, 0)
 
 
 class ForemanApiWrapper:
@@ -88,8 +86,8 @@ class ForemanApiWrapper:
             if PY3:
                 raise ex from e
             else:
+                from future.utils import raise_from
                 raise_from(ex, e)
-
 
     @staticmethod
     def _get_headers_for_http_method(http_method):

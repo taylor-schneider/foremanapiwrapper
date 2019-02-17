@@ -3,7 +3,7 @@ class ForemanApiCallException(Exception):
     def __init__(self, message, endpoint, method, results, arguments=None, headers=None):
 
         # Call the base class constructor with the parameters it needs
-        super(self).__init__(message)
+        super(ForemanApiCallException, self).__init__(message)
 
         # Now for your custom code...
         self.endpoint = endpoint
