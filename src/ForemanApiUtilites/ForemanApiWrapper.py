@@ -3,7 +3,7 @@ import json
 import logging
 import sys
 from requests.auth import HTTPBasicAuth
-from ForemanApiCallException import ForemanApiCallException
+from ForemanApiUtilites.ForemanApiCallException import ForemanApiCallException
 
 
 logger = logging.getLogger()
@@ -24,15 +24,18 @@ class ForemanApiWrapper:
         self.url = url
         self.verify_ssl = verify_ssl
 
-    def make_api_call(self, endpoint, method, arguments=None, headers=None):
+    def make_api_call(self, api_endpoint, http_method, arguments=None, headers=None):
 
         results = None
         try:
-            method_name = str.lower(method)
+            method_name = str.lower(http_method)
             function_pointer = getattr(requests, method_name)
-            request_url = self.url + endpoint
+            request_url = self.url + api_endpoint
 
-            logger.debug("Making api call [{0}] {1}".format(method.upper(), request_url))
+            if headers is None:
+                headers = ForemanApiWrapper._get_headers_for_http_method(http_method)
+
+            logger.debug("Making api call [{0}] {1}".format(http_method.upper(), request_url))
 
             if arguments:
                 logger.debug("Json body:")
@@ -77,8 +80,8 @@ class ForemanApiWrapper:
 
             ex = ForemanApiCallException(
                     msg,
-                    endpoint,
-                    method,
+                    api_endpoint,
+                    http_method,
                     results,
                     arguments,
                     headers)

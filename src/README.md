@@ -1,4 +1,4 @@
-# Foreman API Wrapper
+# Foreman API Utilities
 ## Overview
 The Foreman Projects is a complete lifecycle management tool for physical and virtual servers. https://www.theforeman.org/
 
@@ -21,7 +21,7 @@ There are two main objects in this project.
 ### ForemanAPIWrapper
 The ForemanApiWrapper object which is responsible for storing connection details and making API calls to a Foreman instance. 
 
-It's constructor requires a username, passeord, url, and an boolean representing whether or not to verify SSL certificates which is useful when utilizing a self signed cert.
+It's constructor requires a username, password, url, and an boolean representing whether or not to verify SSL certificates which is useful when utilizing a self signed cert.
 
 To make an api call the user must supply an endpoint, method, a dict object representing the json arguments, and headers. (Some of these terms are discussed later)
 
@@ -41,7 +41,7 @@ An API call can fail in two ways, in either case an Exception object will be thr
     
 In both cases the ForemanApiWrapper will try to construct a descriptive ForemanApiCallException by extracting any information that may be available from the underlying request response.
 ### ForemanApiCallException
-This object will encapsulate the error that occured while making an api call against a remote Foreman API.
+This object will encapsulate the error that occurred while making an api call against a remote Foreman API.
 
 The object will contain the following pieces of information
 1. endpoint
