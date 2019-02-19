@@ -3,7 +3,7 @@ import json
 import logging
 import sys
 from requests.auth import HTTPBasicAuth
-from ForemanApiUtilites.ForemanApiCallException import ForemanApiCallException
+from ForemanApiUtilities.ForemanApiCallException import ForemanApiCallException
 
 
 logger = logging.getLogger()

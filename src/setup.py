@@ -13,7 +13,7 @@ if sys.version_info < (3, 0):
 
 
 setuptools.setup(
-    name="ForemanApiUtilites",
+    name="ForemanApiUtilities",
     version="1.0.0",
     author="tschneider",
     author_email="tschneider@live.com",

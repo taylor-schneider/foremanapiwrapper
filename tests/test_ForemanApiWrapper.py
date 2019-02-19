@@ -1,5 +1,5 @@
 from unittest import TestCase
-from ForemanApiUtilites.ForemanApiWrapper import ForemanApiWrapper
+from ForemanApiUtilities.ForemanApiWrapper import ForemanApiWrapper
 
 
 class Test_ForemanApiWrapper(TestCase):
