@@ -9,8 +9,9 @@ install_requires = [
 ]
 
 if sys.version_info < (3, 0):
-    install_requires = ["future"]
+    install_requires.append("future")
 
+source_code_dir="src"
 
 setuptools.setup(
     name="ForemanApiUtilities",
@@ -20,7 +21,10 @@ setuptools.setup(
     description="A lightweight library for interacting with a Foreman API v2.",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    packages=setuptools.find_packages(),
+    packages=setuptools.find_packages(source_code_dir),
+    package_dir={
+        "": source_code_dir
+    },
     install_requires= install_requires,
     classifiers=[
         "Programming Language :: Python :: 2.7",
