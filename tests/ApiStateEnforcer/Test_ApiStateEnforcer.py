@@ -36,7 +36,7 @@ class Test_ApiStateEnforcer(TestCase):
 
         self.assertTrue(minimalStateExists)
 
-    def test_Set_CreateRecord_Success(self):
+    def test_set_success_create_record(self):
 
         record_name = "some_environment"
         record_type = "environment"
@@ -53,7 +53,7 @@ class Test_ApiStateEnforcer(TestCase):
 
         self.assertTrue(minimalStateExists)
 
-    def test_Delete_DeleteRecord_Success(self):
+    def test_delete_success_record_deleted(self):
 
         record_name = "some_environment"
         record_type = "environment"
@@ -69,3 +69,38 @@ class Test_ApiStateEnforcer(TestCase):
         correctRecordDeleted = self.api_state_enforcer.Compare(minimal_record_state, actual_record_state)
 
         self.assertTrue(correctRecordDeleted)
+
+    def test_ensure_state_exists(self):
+
+        record_name = "some_environment"
+        record_type = "environment"
+        minimal_record_state = {
+            "name": record_name
+        }
+        desired_state = "present"
+
+        actual_record_state = self.api_state_enforcer.EnsureState(record_type, desired_state, minimal_record_state)
+
+        self.assertIsNotNone(actual_record_state)
+        self.assertEqual(type(actual_record_state), dict)
+
+        minimalStateExists = self.api_state_enforcer.EnsureState(record_type, desired_state, minimal_record_state)
+
+        self.assertTrue(minimalStateExists)
+
+        def test_ensure_state_noes_not_exist(self):
+            record_name = "some_environment"
+            record_type = "environment"
+            minimal_record_state = {
+                "name": record_name
+            }
+            desired_state = "absent"
+
+            actual_record_state = self.api_state_enforcer.EnsureState(record_type, desired_state, minimal_record_state)
+
+            self.assertIsNotNone(actual_record_state)
+            self.assertEqual(type(actual_record_state), dict)
+
+            minimalStateExists = self.api_state_enforcer.EnsureState(record_type, desired_state, minimal_record_state)
+
+            self.assertTrue(minimalStateExists)
