@@ -1,0 +1,17 @@
+{
+	"put" : {
+		"subnet" : {
+			"domains" : "domain_ids"
+		}
+	},
+	"get" : {
+		"subnet" : {
+			"domain_ids" : "domains"
+		}
+	},
+	"post" : {
+		"subnet" : {
+			"domains" : "domain_ids"
+		}
+	}
+}
