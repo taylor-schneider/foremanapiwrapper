@@ -382,6 +382,15 @@ class ApiStateEnforcer():
 
     def EnsureState(self, recordType, desiredState, minimalRecordState):
 
+        # This function will ensure that a state for a given record
+        # The supported states are "present" or "absent"
+        # It wil use the Check() function to ask the foreman api if a record
+        # with a matching id or name exists.
+        # It will then create or delete the record as required
+        # It will return an object which will report the information relevant
+        # to any decisions oor actions taken
+        #
+
         try:
             if desiredState.lower() not in ["present", "absent"]:
                 raise Exception("The specified desired state '{0}' was not valid.".format(desiredState))
