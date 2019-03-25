@@ -1,7 +1,7 @@
 from unittest import TestCase
-from ForemanApiUtilities.ForemanApiWrapper import ForemanApiWrapper
-from ApiStateEnforcer.ApiStateEnforcer import ApiStateEnforcer
-from ApiStateEnforcer.RecordModificationReceipt import RecordModificationReceipt
+from ForemanApiWrapper.ForemanApiUtilities.ForemanApiWrapper import ForemanApiWrapper
+from ForemanApiWrapper.ApiStateEnforcer.ApiStateEnforcer import ApiStateEnforcer
+from ForemanApiWrapper.ApiStateEnforcer.RecordModificationReceipt import RecordModificationReceipt
 
 class Test_ApiStateEnforcer(TestCase):
 

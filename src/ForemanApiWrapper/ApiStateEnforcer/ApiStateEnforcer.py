@@ -1,6 +1,6 @@
-from ForemanApiUtilities.ForemanApiCallException import ForemanApiCallException
-from RecordUtilities import RecordComparison
-from ApiStateEnforcer.RecordModificationReceipt import RecordModificationReceipt
+from ForemanApiWrapper.ForemanApiUtilities.ForemanApiCallException import ForemanApiCallException
+from ForemanApiWrapper.RecordUtilities import RecordComparison
+from ForemanApiWrapper.ApiStateEnforcer.RecordModificationReceipt import RecordModificationReceipt
 
 class ApiStateEnforcer():
 

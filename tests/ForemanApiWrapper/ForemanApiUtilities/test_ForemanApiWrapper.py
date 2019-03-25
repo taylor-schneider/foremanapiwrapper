@@ -1,6 +1,7 @@
 from unittest import TestCase
-from ForemanApiUtilities.ForemanApiWrapper import ForemanApiWrapper
-from RecordUtilities import RecordComparison
+from ForemanApiWrapper.ForemanApiUtilities.ForemanApiWrapper import ForemanApiWrapper
+from ForemanApiWrapper.RecordUtilities import RecordComparison
+
 
 class Test_ForemanApiWrapper(TestCase):
 

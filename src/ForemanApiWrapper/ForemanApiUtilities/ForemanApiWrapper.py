@@ -4,9 +4,9 @@ import logging
 import sys
 import os
 from requests.auth import HTTPBasicAuth
-from ForemanApiUtilities.ForemanApiCallException import ForemanApiCallException
-from RecordUtilities import ForemanApiRecord
-from ForemanApiUtilities.ModifiedRecordMismatchException import ModifiedRecordMismatchException
+from ForemanApiWrapper.ForemanApiUtilities.ForemanApiCallException import ForemanApiCallException
+from ForemanApiWrapper.RecordUtilities import ForemanApiRecord
+from ForemanApiWrapper.ForemanApiUtilities import ModifiedRecordMismatchException
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 
