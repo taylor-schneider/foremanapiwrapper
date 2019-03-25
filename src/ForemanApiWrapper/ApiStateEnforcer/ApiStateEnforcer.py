@@ -82,7 +82,7 @@ class ApiStateEnforcer():
                     minimal_record,
                     desired_state,
                     original_record,
-                    None)
+                    original_record) # The actual and original records will be the same
 
             # Do the change
             modified_record = None
