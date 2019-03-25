@@ -11,7 +11,7 @@ install_requires = [
 if sys.version_info < (3, 0):
     install_requires.append("future")
 
-source_code_dir="src"
+source_code_dir = "src"
 
 setuptools.setup(
     name="ForemanApiUtilities",
