@@ -19,39 +19,43 @@ class Test_ApiStateEnforcer(TestCase):
 
         record_name = "some_environment"
         record_type = "environment"
-        minimal_record_state = {
-            "name": record_name
+        minimal_record = {
+            record_type :{
+                "name": record_name
+            }
         }
         desired_state = "present"
 
         try:
 
             with self.assertRaises(Exception) as e:
-                 self.api_state_enforcer.ReadRecord(record_type, minimal_record_state)
+                 self.api_state_enforcer.ReadRecord(record_type, minimal_record)
 
-            modification_receipt = self.api_state_enforcer.ensure_state(record_type, desired_state, minimal_record_state)
+            modification_receipt = self.api_state_enforcer.ensure_state(desired_state, minimal_record)
 
             self.assertIsNotNone(modification_receipt)
             self.assertEqual(type(modification_receipt), RecordModificationReceipt)
             self.assertTrue(modification_receipt.changed)
 
         finally:
-            self.api_state_enforcer.ensure_state(record_type, "absent", minimal_record_state)
+            self.api_state_enforcer.ensure_state("absent", minimal_record)
 
         def test_ensure_state_noes_not_exist(self):
             record_name = "some_environment"
             record_type = "environment"
-            minimal_record_state = {
-                "name": record_name
+            minimal_record = {
+                record_type: {
+                    "name": record_name
+                }
             }
             desired_state = "absent"
 
-            actual_record_state = self.api_state_enforcer.ensure_state(record_type, desired_state, minimal_record_state)
+            actual_record_state = self.api_state_enforcer.ensure_state(desired_state, minimal_record)
 
             self.assertIsNotNone(actual_record_state)
             self.assertEqual(type(actual_record_state), dict)
 
-            minimalStateExists = self.api_state_enforcer.ensure_state(record_type, desired_state, minimal_record_state)
+            minimalStateExists = self.api_state_enforcer.ensure_state(desired_state, minimal_record)
 
             self.assertTrue(minimalStateExists)
 
@@ -59,23 +63,25 @@ class Test_ApiStateEnforcer(TestCase):
 
         record_name = "some_environment"
         record_type = "environment"
-        minimal_record_state = {
-            "name": record_name
+        minimal_record = {
+            record_type: {
+                "name": record_name
+            }
         }
         desired_state = "present"
 
         try:
 
             with self.assertRaises(Exception) as e:
-                actual_record_state = self.api_state_enforcer.ReadRecord(record_type, minimal_record_state)
+                actual_record_state = self.api_state_enforcer.ReadRecord(record_type, minimal_record)
 
-            modification_receipt = self.api_state_enforcer.ensure_state(record_type, desired_state, minimal_record_state)
+            modification_receipt = self.api_state_enforcer.ensure_state(desired_state, minimal_record)
 
-            modification_receipt = self.api_state_enforcer.ensure_state(record_type, desired_state, minimal_record_state)
+            modification_receipt = self.api_state_enforcer.ensure_state(desired_state, minimal_record)
 
             self.assertIsNotNone(modification_receipt)
             self.assertEqual(type(modification_receipt), RecordModificationReceipt)
             self.assertFalse(modification_receipt.changed)
 
         finally:
-            self.api_state_enforcer.ensure_state(record_type, "absent", minimal_record_state)
+            self.api_state_enforcer.ensure_state( "absent", minimal_record)

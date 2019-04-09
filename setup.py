@@ -5,7 +5,8 @@ with open('README.md', "r") as fh:
     long_description = fh.read()
 
 install_requires = [
-    "requests"
+    "requests",
+    "jsonpath"
 ]
 
 if sys.version_info < (3, 0):
@@ -14,7 +15,7 @@ if sys.version_info < (3, 0):
 source_code_dir = "src"
 
 setuptools.setup(
-    name="ForemanApiUtilities",
+    name="ForemanApiWrapper",
     version="1.0.0",
     author="tschneider",
     author_email="tschneider@live.com",

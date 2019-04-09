@@ -58,13 +58,15 @@ class Test_ForemanApiWrapper(TestCase):
 
         record_name = "this_should_not_exist"
         record_type = "environment"
-        minimal_record_state = {
-            "name": record_name
+        minimal_record = {
+            record_type: {
+                "name": record_name
+            }
         }
 
         # An Exception should be raised if the record does not exist
         with self.assertRaises(Exception) as exceptionContext:
-            self.api_wrapper.read_record(record_type, minimal_record_state)
+            self.api_wrapper.read_record(minimal_record)
 
         # Verify the correct exception is thrown
         # If not, rethrow the original exception so we can debug the issue
@@ -82,37 +84,39 @@ class Test_ForemanApiWrapper(TestCase):
 
         record_name = "some_environment"
         record_type = "environment"
-        minimal_record_state = {
-            "name": record_name
+        minimal_record = {
+            record_type: {
+                "name": record_name
+            }
         }
 
         try:
 
             # Do some cleanup
             try:
-                self.api_wrapper.read_record(record_type, minimal_record_state)
-                self.api_wrapper.delete_record(record_type, minimal_record_state)
+                self.api_wrapper.read_record(minimal_record)
+                self.api_wrapper.delete_record(minimal_record)
             except:
                 pass
 
             # Create the record
-            self.api_wrapper.create_record(record_type, minimal_record_state)
+            self.api_wrapper.create_record(minimal_record)
 
             # Check that it exists
-            actual_record_state = self.api_wrapper.read_record(record_type, minimal_record_state)
+            actual_record = self.api_wrapper.read_record(minimal_record)
 
-            self.assertIsNotNone(actual_record_state)
-            self.assertEqual(actual_record_state["name"], record_name)
+            self.assertIsNotNone(actual_record)
+            self.assertEqual(actual_record[record_type]["name"], record_name)
 
             # Check that thte right record was returned
-            minimalStateExists = RecordComparison.compare_record_states(minimal_record_state, actual_record_state)
+            minimalStateExists = RecordComparison.compare_records(minimal_record, actual_record, self.api_wrapper.property_name_mappings)
             self.assertTrue(minimalStateExists)
 
         finally:
             # Cleanup and delete the record if it was created
             try:
-                self.api_wrapper.read_record(record_type, minimal_record_state)
-                self.api_wrapper.delete_record(record_type, minimal_record_state)
+                self.api_wrapper.read_record(minimal_record)
+                self.api_wrapper.delete_record(minimal_record)
             except Exception as e:
                 pass
 
@@ -120,25 +124,27 @@ class Test_ForemanApiWrapper(TestCase):
 
         record_name = "some_environment"
         record_type = "environment"
-        minimal_record_state = {
-            "name": record_name
+        minimal_record = {
+            record_type: {
+                "name": record_name
+            }
         }
 
         try:
-            actual_record_state = self.api_wrapper.create_record(record_type, minimal_record_state)
+            actual_record_state = self.api_wrapper.create_record(minimal_record)
 
             self.assertIsNotNone(actual_record_state)
             self.assertEqual(type(actual_record_state), dict)
 
-            minimalStateExists = RecordComparison.compare_record_states(minimal_record_state, actual_record_state)
+            minimalStateExists = RecordComparison.compare_records(minimal_record, actual_record_state, self.api_wrapper.property_name_mappings)
 
             self.assertTrue(minimalStateExists)
 
         finally:
             # Cleanup and delete the record if it was created
             try:
-                self.api_wrapper.read_record(record_type, minimal_record_state)
-                self.api_wrapper.delete_record(record_type, minimal_record_state)
+                self.api_wrapper.read_record(minimal_record)
+                self.api_wrapper.delete_record(minimal_record)
             except Exception as e:
                 pass
 
@@ -146,31 +152,33 @@ class Test_ForemanApiWrapper(TestCase):
 
         record_name = "some_environment"
         record_type = "environment"
-        minimal_record_state = {
-            "name": record_name
+        minimal_record = {
+            record_type: {
+                "name": record_name
+            }
         }
 
         try:
             # Create the record for the test
-            self.api_wrapper.create_record(record_type, minimal_record_state)
+            self.api_wrapper.create_record(minimal_record)
 
             # Now do the test
-            deleted_record = self.api_wrapper.delete_record(record_type, minimal_record_state)
+            deleted_record = self.api_wrapper.delete_record(minimal_record)
 
             self.assertIsNotNone(deleted_record)
             self.assertEqual(type(deleted_record), dict)
 
-            correctRecordDeleted = RecordComparison.compare_record_states(minimal_record_state, deleted_record)
+            correctRecordDeleted = RecordComparison.compare_records(minimal_record, deleted_record, self.api_wrapper.property_name_mappings)
 
             self.assertTrue(correctRecordDeleted)
 
             with self.assertRaises(Exception):
-                self.api_wrapper.read_record(record_type, minimal_record_state)
+                self.api_wrapper.read_record(record_type, minimal_record)
 
         finally:
             # Cleanup and delete the record if it was created
             try:
-                self.api_wrapper.read_record(record_type, minimal_record_state)
-                self.api_wrapper.delete_record(record_type, minimal_record_state)
+                self.api_wrapper.read_record(record_type, minimal_record)
+                self.api_wrapper.delete_record(record_type, minimal_record)
             except Exception as e:
                 pass
