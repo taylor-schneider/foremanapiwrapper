@@ -1,4 +1,6 @@
 import logging
+import json
+import os
 from ForemanApiWrapper.ForemanApiUtilities.ForemanApiCallException import ForemanApiCallException
 from ForemanApiWrapper.RecordUtilities import RecordComparison
 from ForemanApiWrapper.ApiStateEnforcer.RecordModificationReceipt import RecordModificationReceipt
@@ -83,8 +85,12 @@ class ApiStateEnforcer():
                 ignore_exception = False
                 if type(e.__cause__) == ForemanApiCallException:
                     if e.__cause__.results is not None:
-                        if e.__cause__.results.status_code == 404:
-                            logger.debug("Ignoring 404 Exception as it indicates the record does not exist.")
+                        if "status_code" in dir(e.__cause__.results):
+                            if e.__cause__.results.status_code == 404:
+                                logger.debug("Ignoring 404 Exception as it indicates the record does not exist.")
+                                ignore_exception = True
+                        else:
+                            logger.debug("Ignoring exception raised by API failing to perform query properly.")
                             ignore_exception = True
                 if not ignore_exception:
                     raise Exception("An unexpected error occurred while reading record.") from e
@@ -101,8 +107,17 @@ class ApiStateEnforcer():
 
             change_required, reason = self._determine_change_required(desired_state, minimal_record, original_record)
 
+            # Print some debug info about the change required
             logger.debug("Change required: '{0}'".format(change_required))
             logger.debug("Reason: '{0}'".format(reason))
+            logger.debug("Actual Record:")
+            obj_json = json.dumps(original_record, indent=4, sort_keys=True)
+            for line in obj_json.split(os.linesep):
+                logger.debug(line)
+            logger.debug("Desired Record:")
+            obj_json = json.dumps(minimal_record, indent=4, sort_keys=True)
+            for line in obj_json.split(os.linesep):
+                logger.debug(line)
 
             # If not change is required, our work is done
             if not change_required:

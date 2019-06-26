@@ -342,33 +342,44 @@ class ForemanApiWrapper:
                 if len(results["results"]) == 0:
                     logger.debug("Empty result set returned by the api.")
                     return None
-                elif len(results["results"]) == 1:
-                    record_body = results["results"][0]
-                elif len(results["results"]) > 1:
-                    logger.debug("There were '{0}' records returned when there should have only been one.".format(len(results["results"]) ))
-                    logger.debug("Using extra query logic to determine if the record was found.")
+                else:
+                    if len(results["results"]) > 1:
+                        logger.debug("There were '{0}' records returned when there should have only been one.".format(len(results["results"]) ))
+                        logger.debug("Using extra query logic to determine if the record was found.")
 
                     # Sometimes the API will lie and give us records which do not match the query string
-                    # For exmpale, If i GET the following url
+                    # For exmpale, If I GET the following url
                     #   https://15.4.7.1/api/operatingsystems/29/os_default_templates?search=provisioning_template_id%3D161
                     # I will get back records who's provisioning_tepmlate_id do not equal 161
                     # We will have to implement our own query logic to weed out the bad results
                     # Basically we will check if the query key matches the value
-                    # Multiple records should not occur
+
                     records = []
                     query_key, query_value = ForemanApiWrapper._determine_property_key_and_value_for_query_string(minimal_record, self.record_identification_mappings)
                     for tmp_record_body in results["results"]:
                         # Create a tmp record to compare with the minimal record
                         tmp_record = {record_type: tmp_record_body}
-                        # Do the comparison
+                        # Check f the query key exists in both objects, and the values are the same
                         a = query_key not in minimal_record[record_type].keys()
                         b = query_key not in tmp_record[record_type].keys()
                         c = minimal_record[record_type][query_key] != tmp_record[record_type][query_key]
+                        # If a record satisfies the query, append it
                         if not (a or b or c):
                             records.append(tmp_record)
 
+                    # Multiple records should not occur as a result of the query
+                    # If they do, we should throw an exception
                     if len(records) != 1:
-                        raise Exception("There were '{0}' records returned when there should have only been one. custom logic was not able to filter the results to a single record".format(len(results["results"])))
+                        err_str = "There were '{0}' records returned from the query when there should have only been one."
+                        err_str += "Custom logic was not able to filter the results to a single record"
+                        err_str = err_str.format(len(records))
+                        raise ForemanApiCallException(
+                            err_str,
+                            check_url,
+                            http_method,
+                            results,
+                            None,
+                            None)
 
                     record_body = records[0][record_type]
 
