@@ -190,7 +190,8 @@ def compare_records(minimal_record, actual_record, property_name_mappings):
     normalized_actual_record = normalize_record_properties_for_http_method(actual_record, property_name_mappings)
 
     # Now do the comparison
-    result, reason = _compare_objects(clean_minimal_record, normalized_actual_record)
+    # We will determine whether or not two objects match as well as a human friendly reason they mismatch
+    match, reason = _compare_objects(clean_minimal_record, normalized_actual_record)
 
     # Return the results
-    return result, reason
+    return match, reason

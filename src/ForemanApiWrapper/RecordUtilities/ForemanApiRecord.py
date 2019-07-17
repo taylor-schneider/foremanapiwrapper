@@ -68,7 +68,19 @@ def get_id_from_record(record):
         raise Exception("Unable to determine id for record.")
 
 
-def confirm_modified_record_identity(record_type, record_id, record_to_confirm):
+def get_name_from_record(record):
+    record_body = get_record_body_from_record(record)
+    if "name" in record_body.keys():
+        return record_body["name"]
+    else:
+        raise Exception("Unable to determine name for record.")
+
+
+def confirm_modified_record_identity(record_name_or_id, record_type, record_to_confirm):
+
+    # The name or id fields on a record can be used to confirm identity
+    # Using IDs is the safest choice, but not possible in all circomstances
+    # For example, when deleting records, one may only know the name upfront
 
     try:
         confirmation_record_type = get_record_type_from_record(record_to_confirm)
@@ -76,14 +88,26 @@ def confirm_modified_record_identity(record_type, record_id, record_to_confirm):
         if record_type != confirmation_record_type:
             raise Exception("The record types did not match: '{0}' vs '{1}'.".format(record_type, confirmation_record_type))
 
+        identification_match = False
 
-        confirmation_record_id = get_id_from_record(record_to_confirm)
+        try:
+            id = get_id_from_record(record_to_confirm)
+            if id == record_name_or_id:
+                identification_match = True
+        except:
+            pass
 
-        if record_id != confirmation_record_id:
-            raise Exception("The id fields did not match: '{0}' vs '{1}'.".format(record_id, confirmation_record_id))
+        try:
+            name = get_name_from_record(record_to_confirm)
+            if name == record_name_or_id:
+                identification_match = True
+        except:
+            pass
+
+        if not identification_match:
+            raise Exception("The id and name fields did not match the value '{0}' supplied.".format(record_name_or_id))
     except Exception as e:
         raise Exception("The record identity could not be confirmed.") from e
-
 
 
 def remove_dependencies_from_record(record):

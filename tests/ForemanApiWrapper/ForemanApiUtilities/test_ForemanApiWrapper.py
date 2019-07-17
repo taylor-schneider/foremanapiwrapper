@@ -1,7 +1,17 @@
+import logging
 from unittest import TestCase
 from ForemanApiWrapper.ForemanApiUtilities.ForemanApiWrapper import ForemanApiWrapper
 from ForemanApiWrapper.RecordUtilities import RecordComparison
 
+# Configure logging format and level
+logFormat = '%(asctime)s,%(msecs)d %(levelname)-8s [%(module)s:%(funcName)s():%(lineno)d] %(message)s'
+
+logging.basicConfig(format=logFormat,
+    datefmt='%Y-%m-%d:%H:%M:%S',
+    level=logging.DEBUG)
+
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)
 
 class Test_ForemanApiWrapper(TestCase):
 
@@ -17,6 +27,14 @@ class Test_ForemanApiWrapper(TestCase):
     #
     #   test_<class function name>_<test status>_<notes>
     #
+
+    def __cleanup_record(self, minimal_record):
+        # Cleanup and delete the record if it was created
+        try:
+            self.api_wrapper.read_record(minimal_record)
+            self.api_wrapper.delete_record(minimal_record)
+        except Exception as e:
+            pass
 
     def test_make_api_call_success(self):
 
@@ -42,21 +60,24 @@ class Test_ForemanApiWrapper(TestCase):
         self.assertEqual(expected_error, e.exception.args[0])
 
     def test_make_api_call_success_create_environment(self):
-
         endpoint = "/api/environments"
         method = "post"
-        arguments =  {
+        arguments = {
             "environment": {
-                "name": "some_environment"
+                "name": "test_make_api_call_success_create_environment"
             }
         }
+        record = arguments
 
-        response = self.api_wrapper.make_api_call(endpoint, method, arguments)
-        self.assertTrue("created_at" in response.keys())
+        try:
+            response = self.api_wrapper.make_api_call(endpoint, method, arguments)
+            self.assertTrue("created_at" in response.keys())
+        finally:
+            self.__cleanup_record(record)
 
     def test_read_failure_minimal_state_does_not_exists(self):
 
-        record_name = "this_should_not_exist"
+        record_name = "test_read_failure_minimal_state_does_not_exists"
         record_type = "environment"
         minimal_record = {
             record_type: {
@@ -64,25 +85,14 @@ class Test_ForemanApiWrapper(TestCase):
             }
         }
 
-        # An Exception should be raised if the record does not exist
-        with self.assertRaises(Exception) as exceptionContext:
-            self.api_wrapper.read_record(minimal_record)
+        # Null will be returned if a record does not exist
+        check_record = self.api_wrapper.read_record(minimal_record)
+        self.assertIsNone(check_record)
 
-        # Verify the correct exception is thrown
-        # If not, rethrow the original exception so we can debug the issue
-        try:
-            s = 'An error occurred while reading the record.'
-            e = exceptionContext.exception
-            self.assertEqual(e.args[0], s)
-            s = "Resource environment not found by id '{0}'".format(record_name)
-            e = exceptionContext.exception.__cause__
-            self.assertEqual(e.args[0], s)
-        except:
-            raise exceptionContext.exception
 
     def test_read_success_minimal_state_exists(self):
 
-        record_name = "some_environment"
+        record_name = "test_read_success_minimal_state_exists"
         record_type = "environment"
         minimal_record = {
             record_type: {
@@ -113,16 +123,11 @@ class Test_ForemanApiWrapper(TestCase):
             self.assertTrue(minimalStateExists)
 
         finally:
-            # Cleanup and delete the record if it was created
-            try:
-                self.api_wrapper.read_record(minimal_record)
-                self.api_wrapper.delete_record(minimal_record)
-            except Exception as e:
-                pass
+            self.__cleanup_record(minimal_record)
 
     def test_create_success_create_record(self):
 
-        record_name = "some_environment"
+        record_name = "test_create_success_create_record"
         record_type = "environment"
         minimal_record = {
             record_type: {
@@ -141,16 +146,11 @@ class Test_ForemanApiWrapper(TestCase):
             self.assertTrue(minimalStateExists)
 
         finally:
-            # Cleanup and delete the record if it was created
-            try:
-                self.api_wrapper.read_record(minimal_record)
-                self.api_wrapper.delete_record(minimal_record)
-            except Exception as e:
-                pass
+            self.__cleanup_record(minimal_record)
 
     def test_delete_success_record_deleted(self):
 
-        record_name = "some_environment"
+        record_name = "test_delete_success_record_deleted"
         record_type = "environment"
         minimal_record = {
             record_type: {
@@ -176,9 +176,4 @@ class Test_ForemanApiWrapper(TestCase):
                 self.api_wrapper.read_record(record_type, minimal_record)
 
         finally:
-            # Cleanup and delete the record if it was created
-            try:
-                self.api_wrapper.read_record(record_type, minimal_record)
-                self.api_wrapper.delete_record(record_type, minimal_record)
-            except Exception as e:
-                pass
+            self.__cleanup_record(minimal_record)
