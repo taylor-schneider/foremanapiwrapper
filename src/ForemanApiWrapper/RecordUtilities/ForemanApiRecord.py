@@ -1,3 +1,5 @@
+from ForemanApiWrapper.ForemanApiUtilities.Mappings.ApiRecordIdentificationPropertyMappings import ApiRecordIdentificationPropertyMappings
+
 def get_record_type_from_record(record):
     try:
         keys = list(record.keys())
@@ -20,7 +22,7 @@ def get_record_body_from_record(record):
     return record[record_type]
 
 
-def get_identifier_from_record(record, mappings):
+def get_identifier_from_record(record):
 
     # When checking if a record exists, several fields can be used
     # The name nad id fields are generally interchangable
@@ -32,14 +34,17 @@ def get_identifier_from_record(record, mappings):
     #   }
     # In some cases the API is not consistent and other fields are used
     # The exceptions to the rule are stored in the mappings
+    #
+    # This function will return a tuple containing the field name and the value
+    #
 
     # Set the defaults
     possibleKeys = ["name", "id"]
 
     # Override defaults with mapping file if applicable
     record_type = get_record_type_from_record(record)
-    if record_type in mappings.keys():
-        possibleKeys = mappings[record_type]
+    if record_type in ApiRecordIdentificationPropertyMappings.keys():
+        possibleKeys = ApiRecordIdentificationPropertyMappings[record_type]
 
     record_body = get_record_body_from_record(record)
     for key in possibleKeys:

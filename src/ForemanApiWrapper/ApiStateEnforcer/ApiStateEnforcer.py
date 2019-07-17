@@ -37,7 +37,7 @@ class ApiStateEnforcer():
                 reason = self.missing_record_message
                 change_required = True
             else:
-                states_match, reason_message = RecordComparison.compare_records(minimal_record, actual_record, self.api_wrapper.property_name_mappings)
+                states_match, reason_message = RecordComparison.compare_records(minimal_record, actual_record)
                 change_required = not states_match
 
                 if states_match:

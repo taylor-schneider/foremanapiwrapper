@@ -1,4 +1,5 @@
 from ForemanApiWrapper.RecordUtilities import ForemanApiRecord
+from ForemanApiWrapper.ForemanApiUtilities.Mappings.ApiRecordPropertyNameMappings import ApiRecordPropertyNameMappings
 import json
 import jsonpath
 import os
@@ -122,7 +123,7 @@ def _compare_objects(minimal_record, actual_record):
     return match, reason
 
 
-def normalize_record_properties_for_http_method(actual_record, property_name_mappings):
+def normalize_record_properties_for_http_method(actual_record):
     # The Foreman API is not consistent with the property names used by records
     # The property names change depending on the http method used for the api endpoint
     # For example the subnet record will use the domain_ids or domains property
@@ -139,9 +140,9 @@ def normalize_record_properties_for_http_method(actual_record, property_name_map
         # Loop through the record's properties and perform transformations if necessary
         normalized_record_body = record_body
         for actual_record_property_name, actual_record_property_value in record_body.items():
-            if record_type in property_name_mappings.keys():
+            if record_type in ApiRecordPropertyNameMappings.keys():
                 property_transformation_count = 0
-                for property_mapping in property_name_mappings[record_type]:
+                for property_mapping in ApiRecordPropertyNameMappings[record_type]:
                     if property_mapping["actual_record_property"] == actual_record_property_name:
                         # Multiple mappings being defined for the same property will throw an exception
                         property_transformation_count += 1
@@ -178,7 +179,7 @@ def normalize_record_properties_for_http_method(actual_record, property_name_map
         raise Exception("An error occurred while normalizing the record.") from e
 
 
-def compare_records(minimal_record, actual_record, property_name_mappings):
+def compare_records(minimal_record, actual_record):
 
     # First we need to remove any dependencies from the record
     # The dependencies property is something that is not part of the api
@@ -187,7 +188,7 @@ def compare_records(minimal_record, actual_record, property_name_mappings):
     actual_record = ForemanApiRecord.remove_dependencies_from_record(actual_record)
 
     # Next we will transform the actual record so that it matches the minimal record's schema
-    normalized_actual_record = normalize_record_properties_for_http_method(actual_record, property_name_mappings)
+    normalized_actual_record = normalize_record_properties_for_http_method(actual_record)
 
     # Now do the comparison
     # We will determine whether or not two objects match as well as a human friendly reason they mismatch
