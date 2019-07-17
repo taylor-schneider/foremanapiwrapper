@@ -49,17 +49,6 @@ def get_identifier_from_record(record, mappings):
     raise Exception("Could not determine the identifier for the record.")
 
 
-def get_name_or_id_from_record(record):
-
-    record_body = get_record_body_from_record(record)
-    if "name" in record_body.keys():
-        return "name", record_body["name"]
-    elif "id" in record_body.keys():
-        return "id", record_body["id"]
-    else:
-        raise Exception("Unable to determine name or id for record.")
-
-
 def get_id_from_record(record):
     record_body = get_record_body_from_record(record)
     if "id" in record_body.keys():
@@ -76,36 +65,36 @@ def get_name_from_record(record):
         raise Exception("Unable to determine name for record.")
 
 
-def confirm_modified_record_identity(record_name_or_id, record_type, record_to_confirm):
+def confirm_modified_record_identity(record_identifier, record_type, record_to_confirm):
 
     # The name or id fields on a record can be used to confirm identity
     # Using IDs is the safest choice, but not possible in all circomstances
     # For example, when deleting records, one may only know the name upfront
 
     try:
-        confirmation_record_type = get_record_type_from_record(record_to_confirm)
+        record_to_confirm_type = get_record_type_from_record(record_to_confirm)
 
-        if record_type != confirmation_record_type:
-            raise Exception("The record types did not match: '{0}' vs '{1}'.".format(record_type, confirmation_record_type))
+        if record_type != record_to_confirm_type:
+            raise Exception("The record types did not match: '{0}' vs '{1}'.".format(record_type, record_to_confirm_type))
 
         identification_match = False
 
         try:
             id = get_id_from_record(record_to_confirm)
-            if id == record_name_or_id:
+            if id == record_identifier:
                 identification_match = True
         except:
             pass
 
         try:
             name = get_name_from_record(record_to_confirm)
-            if name == record_name_or_id:
+            if name == record_identifier:
                 identification_match = True
         except:
             pass
 
         if not identification_match:
-            raise Exception("The id and name fields did not match the value '{0}' supplied.".format(record_name_or_id))
+            raise Exception("The record did' not match the identifier '{0}' supplied.".format(record_identifier))
     except Exception as e:
         raise Exception("The record identity could not be confirmed.") from e
 

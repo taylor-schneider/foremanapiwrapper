@@ -520,9 +520,8 @@ class ForemanApiWrapper:
         try:
             # First we determine the url we will be submitting to
             base_delete_url = self._determine_api_endpoint_for_record(minimal_record, self.url_suffix_mappings, self.record_identification_mappings, include_query=False)
-            record_name_or_id = ForemanApiRecord.get_name_or_id_from_record(minimal_record)
-            record_name_or_id_value = record_name_or_id[1]
-            delete_url= "{0}/{1}".format(base_delete_url, record_name_or_id_value)
+            record_identifier_field, record_identifier = ForemanApiRecord.get_identifier_from_record(minimal_record, self.record_identification_mappings)
+            delete_url= "{0}/{1}".format(base_delete_url, record_identifier)
 
             http_method = "DELETE"
 
@@ -541,7 +540,7 @@ class ForemanApiWrapper:
             # Verify that the updated record has the same id as the minimal record
             # Raise an exception if it does not
             try:
-                ForemanApiRecord.confirm_modified_record_identity(record_name_or_id_value, minimal_record_type, deleted_record)
+                ForemanApiRecord.confirm_modified_record_identity(record_identifier, minimal_record_type, deleted_record)
             except Exception as e:
                 raise ModifiedRecordMismatchException(
                     self._modified_record_mismatch_message,
