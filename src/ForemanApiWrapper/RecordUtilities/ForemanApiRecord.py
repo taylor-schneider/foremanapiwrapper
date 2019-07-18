@@ -83,20 +83,10 @@ def confirm_modified_record_identity(record_identifier, record_type, record_to_c
             raise Exception("The record types did not match: '{0}' vs '{1}'.".format(record_type, record_to_confirm_type))
 
         identification_match = False
+        record_to_confirm_identifier_field, record_to_confirm_identifier_value = get_identifier_from_record(record_to_confirm)
 
-        try:
-            id = get_id_from_record(record_to_confirm)
-            if id == record_identifier:
-                identification_match = True
-        except:
-            pass
-
-        try:
-            name = get_name_from_record(record_to_confirm)
-            if name == record_identifier:
-                identification_match = True
-        except:
-            pass
+        if record_to_confirm_identifier_value == record_identifier:
+            identification_match = True
 
         if not identification_match:
             raise Exception("The record did' not match the identifier '{0}' supplied.".format(record_identifier))
