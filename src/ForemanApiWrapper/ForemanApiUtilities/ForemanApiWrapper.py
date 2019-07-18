@@ -456,8 +456,8 @@ class ForemanApiWrapper:
         try:
             # First we determine the url we will be submitting to
             base_delete_url = self._determine_api_endpoint_for_record(minimal_record, include_query=False)
-            record_identifier_field, record_identifier = ForemanApiRecord.get_identifier_from_record(minimal_record)
-            delete_url= "{0}/{1}".format(base_delete_url, record_identifier)
+            field, record_identifier = ForemanApiRecord.get_identifier_from_record(minimal_record)
+            delete_url = "{0}/{1}".format(base_delete_url, record_identifier)
 
             http_method = "DELETE"
 

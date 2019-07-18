@@ -38,15 +38,23 @@ def get_identifier_from_record(record):
     # This function will return a tuple containing the field name and the value
     #
 
+    record_body = get_record_body_from_record(record)
+
     # Set the defaults
-    possibleKeys = ["name", "id"]
+    # These fields are preferred to those defined in the mapping
+    # They may not exist if a mapping is defined
+
+    if "id"  in record_body.keys():
+        return "id", record_body["id"]
+    if "name"  in record_body.keys():
+        return "name", record_body["name"]
 
     # Override defaults with mapping file if applicable
     record_type = get_record_type_from_record(record)
     if record_type in ApiRecordIdentificationPropertyMappings.keys():
         possibleKeys = ApiRecordIdentificationPropertyMappings[record_type]
 
-    record_body = get_record_body_from_record(record)
+
     for key in possibleKeys:
         if key in record_body.keys():
             return key, record_body[key]
@@ -68,6 +76,17 @@ def get_name_from_record(record):
         return record_body["name"]
     else:
         raise Exception("Unable to determine name for record.")
+
+
+def get_name_or_id_from_record(record):
+
+    record_body = get_record_body_from_record(record)
+    if "id" in record_body.keys():
+        return "id", record_body["id"]
+    elif "name" in record_body.keys():
+        return "name", record_body["name"]
+    else:
+        raise Exception("Unable to determine name or id for record.")
 
 
 def confirm_modified_record_identity(record_identifier, record_type, record_to_confirm):
