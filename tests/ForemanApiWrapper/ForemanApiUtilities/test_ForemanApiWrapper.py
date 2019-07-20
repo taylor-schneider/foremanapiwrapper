@@ -119,7 +119,7 @@ class Test_ForemanApiWrapper(TestCase):
             self.assertEqual(actual_record[record_type]["name"], record_name)
 
             # Check that thte right record was returned
-            minimalStateExists = RecordComparison.compare_records(minimal_record, actual_record, self.api_wrapper.property_name_mappings)
+            minimalStateExists = RecordComparison.compare_records(minimal_record, actual_record)
             self.assertTrue(minimalStateExists)
 
         finally:
@@ -141,7 +141,7 @@ class Test_ForemanApiWrapper(TestCase):
             self.assertIsNotNone(actual_record_state)
             self.assertEqual(type(actual_record_state), dict)
 
-            minimalStateExists = RecordComparison.compare_records(minimal_record, actual_record_state, self.api_wrapper.property_name_mappings)
+            minimalStateExists = RecordComparison.compare_records(minimal_record, actual_record_state)
 
             self.assertTrue(minimalStateExists)
 
@@ -168,7 +168,7 @@ class Test_ForemanApiWrapper(TestCase):
             self.assertIsNotNone(deleted_record)
             self.assertEqual(type(deleted_record), dict)
 
-            correctRecordDeleted = RecordComparison.compare_records(minimal_record, deleted_record, self.api_wrapper.property_name_mappings)
+            correctRecordDeleted = RecordComparison.compare_records(minimal_record, deleted_record)
 
             self.assertTrue(correctRecordDeleted)
 

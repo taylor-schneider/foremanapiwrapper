@@ -14,7 +14,6 @@ from ForemanApiWrapper.ForemanApiUtilities.Mappings.ApiRecordToUrlSuffixMapping 
 
 logger = logging.getLogger()
 
-
 PY3 = sys.version_info >= (3, 0)
 
 
@@ -22,7 +21,6 @@ if PY3:
     import urllib.parse
 else:
     import urllib
-
 
 class ForemanApiWrapper:
 
@@ -35,6 +33,12 @@ class ForemanApiWrapper:
         self.auth = HTTPBasicAuth(username, password)
         self.url = url
         self.verify_ssl = verify_ssl
+
+        if not verify_ssl:
+            #os.environ["PYTHONWARNINGS"] = "ignore:Unverified HTTPS request"
+            import warnings
+            from requests.packages.urllib3.exceptions import InsecureRequestWarning
+            warnings.simplefilter('ignore', InsecureRequestWarning)
 
     @staticmethod
     def _get_headers_for_http_method(http_method):
@@ -271,19 +275,33 @@ class ForemanApiWrapper:
             record_type = ForemanApiRecord.get_record_type_from_record(minimal_record)
             results = self.make_api_call(check_url, http_method)
 
-            # If a single record is returned, return it
+            # The api my return a single record, or a result set
+            # If a result set is returned, the key "results" will appear in the object
+            # If  single object is returned the key will not appear
+            # If multiple results are returned, we will try to find the right one
+            # This is a workaround from the api having bugs
+
+            # Create a var for the record returned
             record_body = None
+
+            # If a single record is returned, store the result
             if "results" not in results.keys():
                 record_body = results
-            # If a result set contains a single item, return it
+
+            # If a result set was returned, we need to look for the the right record
+            # Even if a single record is returned, it might not be the right one
             else:
+
+                # If an empty result set is returned, stop here
                 if len(results["results"]) == 0:
                     logger.debug("Empty result set returned by the api.")
                     return None
+
+                # If more than one result was found, try to find the right onw
                 else:
-                    if len(results["results"]) > 1:
-                        logger.debug("There were '{0}' records returned when there should have only been one.".format(len(results["results"]) ))
-                        logger.debug("Using extra query logic to determine if the record was found.")
+
+                    logger.debug("A result set with '{0}' records was returned..".format(len(results["results"]) ))
+                    logger.debug("Using extra query logic to determine if the record was found.")
 
                     # Sometimes the API will lie and give us records which do not match the query string
                     # For exmpale, If I GET the following url
@@ -292,25 +310,44 @@ class ForemanApiWrapper:
                     # We will have to implement our own query logic to weed out the bad results
                     # Basically we will check if the query key matches the value
 
-                    records = []
-                    query_key, query_value = ForemanApiWrapper._determine_property_key_and_value_for_query_string(minimal_record)
-                    for tmp_record_body in results["results"]:
-                        # Create a tmp record to compare with the minimal record
-                        tmp_record = {record_type: tmp_record_body}
-                        # Check f the query key exists in both objects, and the values are the same
-                        a = query_key not in minimal_record[record_type].keys()
-                        b = query_key not in tmp_record[record_type].keys()
-                        c = minimal_record[record_type][query_key] != tmp_record[record_type][query_key]
-                        # If a record satisfies the query, append it
-                        if not (a or b or c):
-                            records.append(tmp_record)
+                    matched_records = []
 
-                    # Multiple records should not occur as a result of the query
-                    # If they do, we should throw an exception
-                    if len(records) != 1:
+                    # Determine what record field and values are being used for the query
+                    record_field, query_value = ForemanApiWrapper._determine_property_key_and_value_for_query_string(minimal_record)
+
+                    # Check if any of the records in the result set contain the correct field and value
+                    l = len(results["results"])
+                    for x in range(0, l):
+                        result_record_body = results["results"][x]
+
+                        # Create a record to compare with the minimal record
+                        result_record = {record_type: result_record_body}
+
+                        # Check f the query key exists in both objects, and the values are the same
+                        a = record_field in minimal_record[record_type].keys()
+                        b = record_field in result_record[record_type].keys()
+                        minimal_key_value = str(minimal_record[record_type][record_field])
+                        tmp_key_value = str(result_record[record_type][record_field])
+                        c = minimal_key_value == tmp_key_value
+
+                        # If a record satisfies the query, append it
+                        if a and b and c:
+                            logger.debug("Record at index '{0}' matched.".format(x))
+                            matched_records.append(result_record)
+                        else:
+                            logger.debug("Record at index '{0}' did not match because:".format(x))
+                            if not a:
+                                logger.debug("  Query key '{0}' missing from minimal record.".format(record_field))
+                            if not b:
+                                logger.debug("  Query key '{0}' missing from actual record.".format(record_field))
+                            if not c:
+                                logger.debug("  Query key values did not match. '{0}' != '{1}'".format(minimal_key_value, tmp_key_value))
+
+                    # If we were not able to identify a proper match, throw an exception
+                    if len(matched_records) != 1:
                         err_str = "There were '{0}' records returned from the query when there should have only been one."
                         err_str += "Custom logic was not able to filter the results to a single record"
-                        err_str = err_str.format(len(records))
+                        err_str = err_str.format(len(matched_records))
                         raise ForemanApiCallException(
                             err_str,
                             check_url,
@@ -319,7 +356,7 @@ class ForemanApiWrapper:
                             None,
                             None)
 
-                    record_body = records[0][record_type]
+                    record_body = matched_records[0][record_type]
 
             record = {record_type: record_body}
 

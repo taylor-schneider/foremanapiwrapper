@@ -91,6 +91,8 @@ class ApiStateEnforcer():
                                 ignore_exception = True
                         else:
                             logger.debug("Ignoring exception raised by API failing to perform query properly.")
+                            logger.debug("Error was as follows:")
+                            logger.exception(e)
                             ignore_exception = True
                 if not ignore_exception:
                     raise Exception("An unexpected error occurred while reading record.") from e
