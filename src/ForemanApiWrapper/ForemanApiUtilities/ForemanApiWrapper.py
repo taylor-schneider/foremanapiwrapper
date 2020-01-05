@@ -210,15 +210,25 @@ class ForemanApiWrapper:
 
                 query_value = record_body[query_key]
 
+                # For some reason, the API will convert some fields to lower while others
+                # will be left in their original format. For example the mac address field will
+                # be converted to lower for the GET but the POST will accept either
+                # We will do the conversion
+                if query_key in ["mac"]:
+                    query_value = query_value.lower()
+
                 return query_key, query_value
         except Exception as e:
-            raise Exception("An error occured while determining key and value for query string.") from e
+            raise Exception("An error occurred while determining key and value for query string.") from e
 
     @staticmethod
-    def _determine_record_query_string(record):
+    def _determine_record_query_string(record, uncapitalize_query=False):
 
         try:
                 query_key, query_value = ForemanApiWrapper._determine_property_key_and_value_for_query_string(record)
+
+                if uncapitalize_query:
+                   query_value = query_value.lower()
 
                 # Create the query string
                 query = ""
@@ -253,10 +263,11 @@ class ForemanApiWrapper:
         #   [ api_url                                                                                                                                                                    ]
         #
 
+
         try:
-            api_suffix = ForemanApiWrapper._determine_record_suffix(record)
+            record_suffix = ForemanApiWrapper._determine_record_suffix(record)
             query_string = ForemanApiWrapper._determine_record_query_string(record)
-            api_endpoint = "/api{0}".format(api_suffix)
+            api_endpoint = "/api{0}".format(record_suffix)
             if include_query:
                 api_endpoint = "{0}{1}".format(api_endpoint, query_string)
             return api_endpoint
@@ -329,6 +340,12 @@ class ForemanApiWrapper:
                         minimal_key_value = str(minimal_record[record_type][record_field])
                         tmp_key_value = str(result_record[record_type][record_field])
                         c = minimal_key_value == tmp_key_value
+
+                        # As mentioned in the function to create the query string,
+                        # sometimes the API will convert values to lower case for the GET
+                        # It hasn't happened enough to require I tweak the mapping file yet
+                        if record_field in ["mac"]:
+                            c = minimal_key_value.lower() == tmp_key_value.lower()
 
                         # If a record satisfies the query, append it
                         if a and b and c:
