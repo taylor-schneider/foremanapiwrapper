@@ -2,7 +2,6 @@ import requests
 import json
 import logging
 import sys
-import os
 from requests.auth import HTTPBasicAuth
 from ForemanApiWrapper.ForemanApiUtilities.ForemanApiCallException import ForemanApiCallException
 from ForemanApiWrapper.RecordUtilities import ForemanApiRecord

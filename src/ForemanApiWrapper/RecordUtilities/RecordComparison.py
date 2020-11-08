@@ -57,7 +57,7 @@ def _compare_lists(minimal_record_state, actual_record_state):
                 break
         if not match:
             element_mismatch_message = "There was no match for element in list at index '{0}'.".format(x)
-            return False, " ".join(list_mismatch_message, element_mismatch_message)
+            return False, " ".join([list_mismatch_message, element_mismatch_message])
 
     # If we got here without exiting, we match!
     return True, "All the elements in the list match."
