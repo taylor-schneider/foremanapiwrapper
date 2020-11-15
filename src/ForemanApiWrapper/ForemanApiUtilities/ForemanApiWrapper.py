@@ -347,7 +347,7 @@ class ForemanApiWrapper:
             # As mentioned in the function to create the query string,
             # sometimes the API will convert values to lower case for the GET
             # It hasn't happened enough to require I tweak the mapping file yet
-            elif record_field in ["mac"]:
+            elif query_key in ["mac"]:
                 if query_value.lower() == result_property_value.lower():
                     logging.debug("Record {0} does contain the field {1} and the mathing lower value '{2}'.".format(x, query_key, query_value))
                     matched_records.append(result_record)
