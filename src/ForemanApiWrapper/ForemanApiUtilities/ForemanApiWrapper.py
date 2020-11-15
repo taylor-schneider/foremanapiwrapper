@@ -176,6 +176,7 @@ class ForemanApiWrapper:
         record_body = ForemanApiRecord.get_record_body_from_record(record)
         record_properties = list(record_body.keys())
         record_type = ForemanApiRecord.get_record_type_from_record(record)
+        preferred_keys = []
         if record_type in ApiRecordIdentificationPropertyMappings.keys():
             preferred_keys = ApiRecordIdentificationPropertyMappings[record_type]
         if "id" not in record_body.keys():
