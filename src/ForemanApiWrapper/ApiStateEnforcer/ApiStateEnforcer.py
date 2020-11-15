@@ -1,6 +1,7 @@
 import logging
 import json
 import os
+import yaml
 from ForemanApiWrapper.ForemanApiUtilities.ForemanApiCallException import ForemanApiCallException
 from ForemanApiWrapper.RecordUtilities import RecordComparison
 from ForemanApiWrapper.ApiStateEnforcer.RecordModificationReceipt import RecordModificationReceipt
@@ -67,6 +68,8 @@ class ApiStateEnforcer():
         #
 
         try:
+            logging.debug("Desired state is as follows:" + os.linesep + yaml.dump(minimal_record))
+
             logger.debug("Ensuring record is '{0}'".format(desired_state))
 
             if desired_state.lower() not in ["present", "absent"]:

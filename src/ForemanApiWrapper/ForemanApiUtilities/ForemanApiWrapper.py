@@ -168,6 +168,26 @@ class ForemanApiWrapper:
             raise Exception("An error occurred while determining the url suffix for the record.") from e
 
     @staticmethod
+    def _get_record_identifcation_properties(record):
+        # This function will return an ordered list of properites for a record
+        # The order is intended to indicate the likelihood of producing a unique record
+        # when used in a query
+
+        record_body = ForemanApiRecord.get_record_body_from_record(record)
+        record_properties = list(record_body.keys())
+        record_type = ForemanApiRecord.get_record_type_from_record(record)
+        if record_type in ApiRecordIdentificationPropertyMappings.keys():
+            preferred_keys = ApiRecordIdentificationPropertyMappings[record_type]
+        if "id" not in record_body.keys():
+            preferred_keys = ["id"] + preferred_keys
+        for preferred_key in preferred_keys.copy():
+            if preferred_key not in record_properties:
+                preferred_keys.remove(preferred_key)
+
+        record_properties = preferred_keys + record_properties
+        return record_properties
+
+    @staticmethod
     def _determine_property_key_and_value_for_query_string(record):
 
         try:
@@ -221,11 +241,8 @@ class ForemanApiWrapper:
             raise Exception("An error occurred while determining key and value for query string.") from e
 
     @staticmethod
-    def _determine_record_query_string(record, uncapitalize_query=False):
-
+    def _create_record_query_string(query_key, query_value, uncapitalize_query=False):
         try:
-                query_key, query_value = ForemanApiWrapper._determine_property_key_and_value_for_query_string(record)
-
                 if uncapitalize_query:
                    query_value = query_value.lower()
 
@@ -246,10 +263,36 @@ class ForemanApiWrapper:
 
                 return query
         except Exception as e:
-            raise Exception("An error occured while determining query string for api url.") from e
+            raise Exception("An error occurred while creating query string for api url.") from e
+
+    @staticmethod
+    def _create_api_endpoint_string_for_record(record, query_key, query_value, include_query=True):
+
+        try:
+            record_suffix = ForemanApiWrapper._determine_record_suffix(record)
+            query_string = ForemanApiWrapper._create_record_query_string(query_key, query_value)
+            api_endpoint = "/api{0}".format(record_suffix)
+            if include_query:
+                api_endpoint = "{0}{1}".format(api_endpoint, query_string)
+            return api_endpoint
+        except Exception as e:
+            raise Exception("An error occurred while creating the api endpoint for the specified record.")
+
+    @staticmethod
+    def _determine_record_query_string(record, uncapitalize_query=False):
+
+        try:
+                query_key, query_value = ForemanApiWrapper._determine_property_key_and_value_for_query_string(record)
+                query = ForemanApiWrapper._create_record_query_string(query_key, query_value, uncapitalize_query)
+                return query
+        except Exception as e:
+            raise Exception("An error occurred while determining query string for api url.") from e
 
     @staticmethod
     def _determine_api_endpoint_for_record(record, include_query=True):
+
+        # This function will use information in the record to construct an API url
+        # The URL is expected to return a unique record if one exists.
 
         # An example url is as follows
         #   https://15.4.7.1/api/operatingsystems/19
@@ -273,110 +316,113 @@ class ForemanApiWrapper:
         except Exception as e:
             raise Exception("An error occurred while determine the api endpoint for the specified record.")
 
-    def read_record(self, minimal_record):
+    @staticmethod
+    def _match_record_in_results(record_type, results, query_key, query_value):
 
-        # This function will check if a record exists by querying the foreman api
-        # If the record exists, it will return the json returned by the server
-        # If the record does not exist, an error will be raised
-        try:
+        # There is a bug in the foreman api:
+        # Sometimes the API will lie and give us records which do not match the query string
+        # For exmpale, If I GET the following url
+        #   https://15.4.7.1/api/operatingsystems/29/os_default_templates?search=provisioning_template_id%3D161
+        # I will get back records who's provisioning_tepmlate_id do not equal 161
+        # We will have to implement our own query logic to weed out the bad results
+        # Basically we will check if the query key matches the value
+        # We will either return a record or None
 
-            check_url = self._determine_api_endpoint_for_record(minimal_record)
-            http_method = "GET"
-            record_type = ForemanApiRecord.get_record_type_from_record(minimal_record)
-            results = self.make_api_call(check_url, http_method)
+        matched_records = []
 
-            # The api my return a single record, or a result set
-            # If a result set is returned, the key "results" will appear in the object
-            # If  single object is returned the key will not appear
-            # If multiple results are returned, we will try to find the right one
-            # This is a workaround from the api having bugs
+        logging.debug("Checking if any of the records in the result set contain the correct field and value.")
+        l = len(results["results"])
+        for x in range(0, l):
+            result_record_body = results["results"][x]
+            result_record = {record_type: result_record_body}
+            if query_key not in result_record_body.keys():
+                logging.debug("Record {0} does not contain the field '{1}'.".format(x, query_key))
+                continue
+            result_property_value = result_record_body[query_key]
+            if query_value == result_property_value:
+                logging.debug("Record {0} does contain the field '{1}' and the matching value '{2}'.".format(x, query_key, query_value))
+                matched_records.append(result_record)
 
-            # Create a var for the record returned
-            record_body = None
+            # As mentioned in the function to create the query string,
+            # sometimes the API will convert values to lower case for the GET
+            # It hasn't happened enough to require I tweak the mapping file yet
+            elif record_field in ["mac"]:
+                if query_value.lower() == result_property_value.lower():
+                    logging.debug("Record {0} does contain the field {1} and the mathing lower value '{2}'.".format(x, query_key, query_value))
+                    matched_records.append(result_record)
 
-            # If a single record is returned, store the result
-            if "results" not in results.keys():
-                record_body = results
+        # At this point we will return a single record and ignore multiple records that are returned
+        if len(matched_records) == 1:
+            record =  matched_records[0]
+            record_body = ForemanApiRecord.get_record_body_from_record(record)
+            return record_body
+        else:
+            logging.debug("API returned {0} matches for field '{1}'.".format(len(matched_records), query_key))
+            return None
 
-            # If a result set was returned, we need to look for the the right record
-            # Even if a single record is returned, it might not be the right one
+    @staticmethod
+    def _get_record_from_results(record_type, results, query_key, query_value):
+
+        # The api my return a single record, or a result set
+        # If a result set is returned, the key "results" will appear in the object
+        # If  single object is returned the key will not appear
+        # If multiple results are returned, we will try to find the right one
+        # This is a workaround from the api having bugs
+
+        # Create a var for the record returned
+        record_body = None
+
+        # If a single record is returned, store the result
+        if "results" not in results.keys():
+            record_body = results
+
+        # If a result set was returned, we need to look for the the right record
+        # Even if a single record is returned, it might not be the right one
+        else:
+            if len(results["results"]) == 0:
+                logger.debug("Empty result set returned by the api.")
+                return None
             else:
+                logger.debug("A result set with '{0}' results was returned..".format(len(results["results"])))
+                logger.debug("Using extra query logic to determine if the record was found.")
+                record_body = ForemanApiWrapper._match_record_in_results(record_type, results, query_key, query_value)
 
-                # If an empty result set is returned, stop here
-                if len(results["results"]) == 0:
-                    logger.debug("Empty result set returned by the api.")
-                    return None
-
-                # If more than one result was found, try to find the right onw
-                else:
-
-                    logger.debug("A result set with '{0}' records was returned..".format(len(results["results"]) ))
-                    logger.debug("Using extra query logic to determine if the record was found.")
-
-                    # Sometimes the API will lie and give us records which do not match the query string
-                    # For exmpale, If I GET the following url
-                    #   https://15.4.7.1/api/operatingsystems/29/os_default_templates?search=provisioning_template_id%3D161
-                    # I will get back records who's provisioning_tepmlate_id do not equal 161
-                    # We will have to implement our own query logic to weed out the bad results
-                    # Basically we will check if the query key matches the value
-
-                    matched_records = []
-
-                    # Determine what record field and values are being used for the query
-                    record_field, query_value = ForemanApiWrapper._determine_property_key_and_value_for_query_string(minimal_record)
-
-                    # Check if any of the records in the result set contain the correct field and value
-                    l = len(results["results"])
-                    for x in range(0, l):
-                        result_record_body = results["results"][x]
-
-                        # Create a record to compare with the minimal record
-                        result_record = {record_type: result_record_body}
-
-                        # Check f the query key exists in both objects, and the values are the same
-                        a = record_field in minimal_record[record_type].keys()
-                        b = record_field in result_record[record_type].keys()
-                        minimal_key_value = str(minimal_record[record_type][record_field])
-                        tmp_key_value = str(result_record[record_type][record_field])
-                        c = minimal_key_value == tmp_key_value
-
-                        # As mentioned in the function to create the query string,
-                        # sometimes the API will convert values to lower case for the GET
-                        # It hasn't happened enough to require I tweak the mapping file yet
-                        if record_field in ["mac"]:
-                            c = minimal_key_value.lower() == tmp_key_value.lower()
-
-                        # If a record satisfies the query, append it
-                        if a and b and c:
-                            logger.debug("Record at index '{0}' matched.".format(x))
-                            matched_records.append(result_record)
-                        else:
-                            logger.debug("Record at index '{0}' did not match because:".format(x))
-                            if not a:
-                                logger.debug("  Query key '{0}' missing from minimal record.".format(record_field))
-                            if not b:
-                                logger.debug("  Query key '{0}' missing from actual record.".format(record_field))
-                            if not c:
-                                logger.debug("  Query key values did not match. '{0}' != '{1}'".format(minimal_key_value, tmp_key_value))
-
-                    # If we were not able to identify a proper match, throw an exception
-                    if len(matched_records) != 1:
-                        err_str = "There were '{0}' records returned from the query when there should have only been one."
-                        err_str += "Custom logic was not able to filter the results to a single record"
-                        err_str = err_str.format(len(matched_records))
-                        raise ForemanApiCallException(
-                            err_str,
-                            check_url,
-                            http_method,
-                            results,
-                            None,
-                            None)
-
-                    record_body = matched_records[0][record_type]
+            if record_body is  None:
+                return None
 
             record = {record_type: record_body}
-
             return record
+
+    def read_record(self, minimal_record):
+
+        # This function will attempt to read a record from the Foreman API
+        # It will examine the record properties and construct an api call to lookup the record
+        # If the record exists, it will return the json returned by the server
+        # If the record does not exist, an error will be raised
+        # If multiple records are returned, we will scan through the record properties
+        # and make alternate queries until a unique record can be found
+        # Ultimately, an error will be returned if a unique record cannot be identified
+
+        try:
+            record_type = ForemanApiRecord.get_record_type_from_record(minimal_record)
+            http_method = "GET"
+            identification_properties = ForemanApiWrapper._get_record_identifcation_properties(minimal_record)
+            logging.debug("Will attempt to find record using the following fields as query parameters:")
+            logging.debug(identification_properties)
+            for identification_property in identification_properties:
+                logging.debug("Looking up record using property '{0}'.".format(identification_property))
+                identification_property_value = minimal_record[record_type][identification_property]
+                endpoint = ForemanApiWrapper._create_api_endpoint_string_for_record(minimal_record, identification_property, identification_property_value)
+                results = self.make_api_call(endpoint, http_method)
+                try:
+                    record = ForemanApiWrapper._get_record_from_results(record_type, results, identification_property, identification_property_value)
+                except ForemanApiCallException as ex:
+                    logging.debug("API call failed:")
+                    logging.debug(ex.args[0])
+                    continue
+                if record is None:
+                    continue
+                return record
         except Exception as e:
             raise Exception("An error occurred while reading the record.") from e
 
