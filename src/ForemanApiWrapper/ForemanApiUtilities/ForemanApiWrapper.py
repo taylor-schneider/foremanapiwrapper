@@ -179,7 +179,7 @@ class ForemanApiWrapper:
         preferred_keys = []
         if record_type in ApiRecordIdentificationPropertyMappings.keys():
             preferred_keys = ApiRecordIdentificationPropertyMappings[record_type]
-        if "id" not in record_body.keys():
+        if "id" not in record_body.keys() and "id" not in record_body.keys() :
             preferred_keys = ["id"] + preferred_keys
         for preferred_key in preferred_keys.copy():
             if preferred_key not in record_properties:
@@ -388,11 +388,11 @@ class ForemanApiWrapper:
                 logger.debug("Using extra query logic to determine if the record was found.")
                 record_body = ForemanApiWrapper._match_record_in_results(record_type, results, query_key, query_value)
 
-            if record_body is  None:
-                return None
+        if record_body is  None:
+            return None
 
-            record = {record_type: record_body}
-            return record
+        record = {record_type: record_body}
+        return record
 
     def read_record(self, minimal_record):
 
@@ -424,6 +424,7 @@ class ForemanApiWrapper:
                 if record is None:
                     continue
                 return record
+            logging.debug("None of the properties matched any existing records.")
         except Exception as e:
             raise Exception("An error occurred while reading the record.") from e
 
