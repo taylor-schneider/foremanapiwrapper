@@ -414,13 +414,13 @@ class ForemanApiWrapper:
                 logging.debug("Looking up record using property '{0}'.".format(identification_property))
                 identification_property_value = minimal_record[record_type][identification_property]
                 endpoint = ForemanApiWrapper._create_api_endpoint_string_for_record(minimal_record, identification_property, identification_property_value)
-                results = self.make_api_call(endpoint, http_method)
                 try:
-                    record = ForemanApiWrapper._get_record_from_results(record_type, results, identification_property, identification_property_value)
+                    results = self.make_api_call(endpoint, http_method)
                 except ForemanApiCallException as ex:
                     logging.debug("API call failed:")
                     logging.debug(ex.args[0])
                     continue
+                record = ForemanApiWrapper._get_record_from_results(record_type, results, identification_property,  identification_property_value)
                 if record is None:
                     continue
                 return record
