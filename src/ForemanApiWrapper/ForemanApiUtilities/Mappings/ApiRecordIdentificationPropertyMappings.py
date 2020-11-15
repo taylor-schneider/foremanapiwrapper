@@ -1,7 +1,7 @@
 ApiRecordIdentificationPropertyMappings = {
   "operatingsystem": [
     "id",
-    "name",
+    "title",
     "description"
   ],
   "os_default_template": [
