@@ -1,7 +1,6 @@
 ApiRecordIdentificationProperties = {
   "operatingsystem": [
     "id",
-    "title",
     "description"
   ],
   "os_default_template": [

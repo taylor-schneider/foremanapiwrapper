@@ -86,6 +86,37 @@ class Test_ApiStateEnforcer(TestCase):
         finally:
             self.api_state_enforcer.ensure_state( "absent", minimal_record)
 
+    def test_ensure_state_exists_record_exists_adhoc(self):
+
+        record_type = "operatingsystem"
+        minimal_record = {
+            record_type: {
+                "architecture_ids": [],
+                "config_template_ids": [],
+                "description": "Fedora Operating System",
+                "family": "Redhat",
+                "major": "33",
+                "medium_ids": [],
+                "minor": "1.2",
+                "name": "Fedora",
+                "password_hash": "SHA256",
+                "provisioning_template_ids": [],
+                "ptable_ids": []
+            }
+        }
+        desired_state = "present"
+
+        try:
+
+            modification_receipt = self.api_state_enforcer.ensure_state(desired_state, minimal_record)
+
+            self.assertIsNotNone(modification_receipt)
+            self.assertEqual(type(modification_receipt), RecordModificationReceipt)
+            self.assertFalse(modification_receipt.changed)
+
+        finally:
+            self.api_state_enforcer.ensure_state("absent", minimal_record)
+
     def test__determine_change_required(self):
 
         actual_record = {
