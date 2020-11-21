@@ -85,3 +85,85 @@ class Test_ApiStateEnforcer(TestCase):
 
         finally:
             self.api_state_enforcer.ensure_state( "absent", minimal_record)
+
+    def test__determine_change_required(self):
+
+        actual_record = {
+            "subnet": {
+                "boot_mode": "DHCP",
+                "cidr": 8,
+                "created_at": "2020-11-15 06:55:52 UTC",
+                "description": None,
+                "dhcp": {
+                    "id": 1,
+                    "name": "foreman.foobar.com",
+                    "url": "https://foreman.foobar.com:8443",
+                },
+                "dhcp_id": 1,
+                "dhcp_name": "foreman.foobar.com",
+                "dns": {
+                    "id": 1,
+                    "name": "foreman.foobar.com",
+                    "url": "https://foreman.foobar.com:8443",
+                },
+                "dns_id": 1,
+                "dns_primary": "15.4.5.1",
+                "dns_secondary": "15.1.1.1",
+                "externalipam": None,
+                "externalipam_id": None,
+                "externalipam_name": None,
+                "from": None,
+                "gateway": "15.1.1.1",
+                "httpboot": None,
+                "httpboot_id": None,
+                "httpboot_name": None,
+                "id": 1,
+                "ipam": "None",
+                "mask": "255.0.0.0",
+                "mtu": 1500,
+                "name": "PxeSubnet",
+                "network": "15.0.0.0",
+                "network_address": "15.0.0.0/8",
+                "network_type": "IPv4",
+                "priority": None,
+                "template": None,
+                "template_id": None,
+                "template_name": None,
+                "tftp": {
+                    "id": 1,
+                    "name": "foreman.foobar.com",
+                    "url": "https://foreman.foobar.com:8443",
+                },
+                "tftp_id": 1,
+                "tftp_name": "foreman.foobar.com",
+                "to": None,
+                "updated_at": "2020-11-15 06:55:52 UTC",
+                "vlanid": None
+            }
+        }
+
+        minimal_record = {
+                "subnet": {
+                    "boot_mode": "DHCP",
+                    "dhcp_id": "1",
+                    "dns_id": "1",
+                    "dns_primary": "15.4.5.1",
+                    "dns_secondary": "15.1.1.1",
+                    "domain_ids": [
+                        "2",
+                    ],
+                    "gateway": "15.1.1.1",
+                    "mask": "255.0.0.0",
+                    "name": "PxeSubnet",
+                    "network": "15.0.0.0",
+                    "tftp_id": "1"
+                }
+            }
+
+        desired_state = "present"
+        faw = ForemanApiWrapper
+        ase = ApiStateEnforcer(faw)
+        change_required, reason =ase._determine_change_required(desired_state, minimal_record, actual_record)
+
+        s = ""
+

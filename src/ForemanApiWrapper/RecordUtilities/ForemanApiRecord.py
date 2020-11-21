@@ -1,4 +1,4 @@
-from ForemanApiWrapper.ForemanApiUtilities.Mappings.ApiRecordIdentificationPropertyMappings import ApiRecordIdentificationPropertyMappings
+from ForemanApiWrapper.ForemanApiUtilities.Mappings.ApiRecordIdentificationProperties import ApiRecordIdentificationProperties
 
 def get_record_type_from_record(record):
     try:
@@ -29,8 +29,8 @@ def get_identifier_fields_for_record(record):
 
     # Get any fields that may be defined in the mapping file for the record type
     record_type = get_record_type_from_record(record)
-    if record_type in ApiRecordIdentificationPropertyMappings.keys():
-        additional_identifier_fields = ApiRecordIdentificationPropertyMappings[record_type]
+    if record_type in ApiRecordIdentificationProperties.keys():
+        additional_identifier_fields = ApiRecordIdentificationProperties[record_type]
         for additional_identifier_field in additional_identifier_fields:
             if additional_identifier_field not in identifier_fields:
                 identifier_fields.append(additional_identifier_field)

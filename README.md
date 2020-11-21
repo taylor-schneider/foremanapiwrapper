@@ -28,7 +28,10 @@ When making API calls the user is often required to supply a record or will retr
 
 ### ForemanApiWrapper
 The Foreman API does not implement all of the API endpoints in a uniform way.
+Specifically, the data model for the Records is not consistent between what is supplied as a parameter to an endpoint,
+and what is returned by the endpoint once an action is completed.
 This class implements an abstraction layer which provides a unified model for performing CRUD operations against the API.
+In the codebase are Mapping files which keep track of the inconsistencies (Note: This mapping may be incomplete. It is based on what I have discovered thus far).
 It's constructor requires a username, password, url, and an boolean representing whether or not to verify SSL certificates which is useful when utilizing a self signed cert.
 
 #### CRUD operations

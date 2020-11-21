@@ -6,7 +6,7 @@ from requests.auth import HTTPBasicAuth
 from ForemanApiWrapper.ForemanApiUtilities.ForemanApiCallException import ForemanApiCallException
 from ForemanApiWrapper.RecordUtilities import ForemanApiRecord
 from ForemanApiWrapper.ForemanApiUtilities.ModifiedRecordMismatchException import ModifiedRecordMismatchException
-from ForemanApiWrapper.ForemanApiUtilities.Mappings.ApiRecordIdentificationPropertyMappings import ApiRecordIdentificationPropertyMappings
+from ForemanApiWrapper.ForemanApiUtilities.Mappings.ApiRecordIdentificationProperties import ApiRecordIdentificationProperties
 from ForemanApiWrapper.ForemanApiUtilities.Mappings.ApiRecordPropertyNameMappings import ApiRecordPropertyNameMappings
 from ForemanApiWrapper.ForemanApiUtilities.Mappings.ApiRecordToUrlSuffixMapping import ApiRecordToUrlSuffixMapping
 
@@ -177,8 +177,8 @@ class ForemanApiWrapper:
         record_properties = list(record_body.keys())
         record_type = ForemanApiRecord.get_record_type_from_record(record)
         preferred_keys = []
-        if record_type in ApiRecordIdentificationPropertyMappings.keys():
-            preferred_keys = ApiRecordIdentificationPropertyMappings[record_type]
+        if record_type in ApiRecordIdentificationProperties.keys():
+            preferred_keys = ApiRecordIdentificationProperties[record_type]
         if "id" not in record_body.keys() and "id" not in record_body.keys() :
             preferred_keys = ["id"] + preferred_keys
         for preferred_key in preferred_keys.copy():
@@ -204,8 +204,8 @@ class ForemanApiWrapper:
                 # We have the ApiRecordIdentificationPropertyMappings as a way to specify a preferred search field
                 # We will try to use this mapping first
                 possible_keys = []
-                if record_type in ApiRecordIdentificationPropertyMappings.keys():
-                    possible_keys = ApiRecordIdentificationPropertyMappings[record_type]
+                if record_type in ApiRecordIdentificationProperties.keys():
+                    possible_keys = ApiRecordIdentificationProperties[record_type]
                     if "id" in possible_keys:
                         possible_keys.remove("id")
 

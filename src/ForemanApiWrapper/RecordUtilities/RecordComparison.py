@@ -11,17 +11,17 @@ def _compare_dicts(minimal_record_state, actual_record_state):
 
     dict_mismatch_message = "The dicts did not match."
 
-    # If a key is missing that is a dead givaway
+    # Loop through the dict keys and compare the values
     for key, value in minimal_record_state.items():
+
+        # If a key is missing from the actual record, that is a dead givaway
         if key not in actual_keys:
             key_missing_message = "The key '{0}' was not found on the actual record.".format(key)
             return False, " ".join([dict_mismatch_message, key_missing_message])
 
-        # Call this function recursively
-        # Return false if any of the keys dont match
+        # If the values don't match, flag it
         minimal_value = minimal_record_state[key]
         actual_value = actual_record_state[key]
-
         comparison_result, reason = _compare_objects(minimal_value, actual_value)
         if not comparison_result:
             key_mismatch_message = "The keys '{0}' did not match.".format(key)
@@ -61,7 +61,6 @@ def _compare_lists(minimal_record_state, actual_record_state):
 
     # If we got here without exiting, we match!
     return True, "All the elements in the list match."
-
 
 def _compare_objects(minimal_record, actual_record):
     # This function will return true or false based on whether or not the

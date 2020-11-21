@@ -1,4 +1,4 @@
-ApiRecordIdentificationPropertyMappings = {
+ApiRecordIdentificationProperties = {
   "operatingsystem": [
     "id",
     "title",
