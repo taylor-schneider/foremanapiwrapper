@@ -133,7 +133,7 @@ def _compare_objects(record_type, minimal_record, actual_record):
                 reason = os.linesep.join(tmp).format(minimal_record, actual_record)
 
         if reason is None:
-            reason = "The value of the primitive objects did not match: {0} vs {1}.".format(minimal_record, actual_record)
+            reason = "The value of the primitive objects did not match: '{0}' vs '{1}'.".format(minimal_record, actual_record)
 
     if match:
         reason ="The obects matched."
