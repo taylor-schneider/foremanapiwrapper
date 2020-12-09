@@ -1,11 +1,11 @@
 from ForemanApiWrapper.RecordUtilities import ForemanApiRecord
 from ForemanApiWrapper.ForemanApiUtilities.Mappings.ApiRecordPropertyNameMappings import ApiRecordPropertyNameMappings
-import json
+from ForemanApiWrapper.RecordUtilities import ForemanApiRecord
 import jsonpath
 import os
 
 
-def _compare_dicts(minimal_record_state, actual_record_state):
+def _compare_dicts(record_type, minimal_record_state, actual_record_state):
 
     actual_keys = list(actual_record_state.keys())
 
@@ -14,15 +14,24 @@ def _compare_dicts(minimal_record_state, actual_record_state):
     # Loop through the dict keys and compare the values
     for key, value in minimal_record_state.items():
 
-        # If a key is missing from the actual record, that is a dead givaway
+        # If a key is missing from the actual record, that is a dead giveaway
+        # There are some exceptions however... and they depend on the record type
         if key not in actual_keys:
+            # Ignore exceptions
+            #
+            # 1. The subnet is created with an id for the doman. The resulting record has the domain name not the id
+            #     There is no way to make this comparision
+            if record_type == "subnet" and key == "domain_ids":
+                continue
+            # If not an exception call out the issue
             key_missing_message = "The key '{0}' was not found on the actual record.".format(key)
             return False, " ".join([dict_mismatch_message, key_missing_message])
 
+        # Now that we have verified all the keys exist
         # If the values don't match, flag it
         minimal_value = minimal_record_state[key]
         actual_value = actual_record_state[key]
-        comparison_result, reason = _compare_objects(minimal_value, actual_value)
+        comparison_result, reason = _compare_objects(record_type, minimal_value, actual_value)
         if not comparison_result:
             key_mismatch_message = "The keys '{0}' did not match.".format(key)
             return False, " ".join([dict_mismatch_message, key_mismatch_message, reason])
@@ -31,7 +40,7 @@ def _compare_dicts(minimal_record_state, actual_record_state):
     return True, "All the keys and values in the dict match."
 
 
-def _compare_lists(minimal_record_state, actual_record_state):
+def _compare_lists(record_type, minimal_record_state, actual_record_state):
 
     list_mismatch_message = "The lists did not match."
 
@@ -52,7 +61,7 @@ def _compare_lists(minimal_record_state, actual_record_state):
         reason = None
         a = minimal_record_state[x]
         for b in actual_record_state:
-            match, reason = _compare_objects(a, b)
+            match, reason = _compare_objects(record_type, a, b)
             if match:
                 break
         if not match:
@@ -62,23 +71,20 @@ def _compare_lists(minimal_record_state, actual_record_state):
     # If we got here without exiting, we match!
     return True, "All the elements in the list match."
 
-def _compare_objects(minimal_record, actual_record):
+def _compare_objects(record_type, minimal_record, actual_record):
     # This function will return true or false based on whether or not the
     # actual state represents the minimal state
     #       Ie. All the keys/values in minimal state exist in actual
+    # There is a lot of hackery to make this work
 
     match = False
     reason = None
 
     object_mismatch_message = "The objects did not match."
 
-    # Check that the two objects are the same type
-    if type(minimal_record) != type(actual_record):
-        reason = "The objects were not the same type. {0} vs. {1}.".format(type(minimal_record), type(actual_record))
-
     # Certain non primitives need to be handled separately
     # Dictionaries are an example of this
-    elif isinstance(minimal_record, dict):
+    if isinstance(minimal_record, dict):
         # The Foreman API is not consistent with the property names used by records
         # The property names change depending on the http method used for the api endpoint
         # For example the subnet record will use the domain_ids or domains property
@@ -88,14 +94,29 @@ def _compare_objects(minimal_record, actual_record):
         # If the property is not found, check to see if it has an alternate name
         # If both the property and the alternate name are not found, return false
 
-        match, reason = _compare_dicts(minimal_record, actual_record)
+        match, reason = _compare_dicts(record_type, minimal_record, actual_record)
 
     # Lists are also an example of this issue
     elif isinstance(minimal_record, list):
-        match, reason = _compare_lists(minimal_record, actual_record)
+        match, reason = _compare_lists(record_type, minimal_record, actual_record)
 
     # primitive objects should compare just fine
     else:
+
+        # Check that the two objects are the same type
+        # If they are not, we want to allow for stupid humans
+        # for example the human may specify a string but the API returns an int
+        # See if we can convert the the actual into the type of the minimal
+        # This will likely only work with primitives
+        if type(minimal_record) != type(actual_record):
+            try:
+                # Call the constructor of the minimal record type
+                new_actual_record = type(minimal_record)(actual_record)
+                actual_record = new_actual_record
+            except:
+                reason = "The objects were not the same type. {0} vs. {1}.".format(type(minimal_record), type(actual_record))
+
+        # If we got here, compare the two objects
         match = minimal_record == actual_record
 
         reason = None
@@ -185,13 +206,14 @@ def compare_records(minimal_record, actual_record):
     # We added it to make this code work
     clean_minimal_record = ForemanApiRecord.remove_dependencies_from_record(minimal_record)
     actual_record = ForemanApiRecord.remove_dependencies_from_record(actual_record)
+    record_type = ForemanApiRecord.get_record_type_from_record(minimal_record)
 
     # Next we will transform the actual record so that it matches the minimal record's schema
     normalized_actual_record = normalize_record_properties_for_http_method(actual_record)
 
     # Now do the comparison
     # We will determine whether or not two objects match as well as a human friendly reason they mismatch
-    match, reason = _compare_objects(clean_minimal_record, normalized_actual_record)
+    match, reason = _compare_objects(record_type, clean_minimal_record, normalized_actual_record)
 
     # Return the results
     return match, reason
