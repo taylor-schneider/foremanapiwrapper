@@ -114,7 +114,7 @@ def _compare_objects(record_type, minimal_record, actual_record):
                 new_actual_record = type(minimal_record)(actual_record)
                 actual_record = new_actual_record
             except:
-                reason = "The objects were not the same type. {0} vs. {1}.".format(type(minimal_record), type(actual_record))
+                reason = "The objects were not the same type. '{0}' vs. '{1}'.".format(type(minimal_record), type(actual_record))
 
         # If we got here, compare the two objects
         match = minimal_record == actual_record
