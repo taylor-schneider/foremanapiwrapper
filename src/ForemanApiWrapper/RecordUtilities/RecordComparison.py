@@ -23,6 +23,10 @@ def _compare_dicts(record_type, minimal_record_state, actual_record_state):
             #     There is no way to make this comparision
             if record_type == "subnet" and key == "domain_ids":
                 continue
+            # 2. The operatingsystem has an undocumented parameter config_template_ids on POST but not the others
+            if record_type == "operatingsystem" and key == "config_template_ids":
+                continue
+
             # If not an exception call out the issue
             key_missing_message = "The key '{0}' was not found on the actual record.".format(key)
             return False, " ".join([dict_mismatch_message, key_missing_message])
@@ -160,38 +164,50 @@ def normalize_record_properties_for_http_method(actual_record):
         # Loop through the record's properties and perform transformations if necessary
         normalized_record_body = record_body
         for actual_record_property_name, actual_record_property_value in record_body.items():
-            if record_type in ApiRecordPropertyNameMappings.keys():
-                property_transformation_count = 0
-                for property_mapping in ApiRecordPropertyNameMappings[record_type]:
-                    if property_mapping["actual_record_property"] == actual_record_property_name:
-                        # Multiple mappings being defined for the same property will throw an exception
-                        property_transformation_count += 1
-                        if property_transformation_count > 1:
-                            raise Exception("Too many mappings were defined for the actual record'{0}' property of the '{1}' record type.".format(actual_record_property_name, record_type))
-                        # Resolve the jsonpath expression
-                        jsonpath_string = property_mapping["jsonpath"]
-                        new_property_value = jsonpath.jsonpath(actual_record, jsonpath_string)
-                        # If the path we are searching for does not exist, false is returned
-                        # this can happen if for example, the domains list is empty and we
-                        # are tyring to access an id property from an element in the list
-                        # In this case, we will just deal with an empty list
-                        if new_property_value == False:
-                            new_property_value = []
-                        # The json path library will always return a list if the path exists
-                        # In some cases, we want the query to return a single result rather than a list
-                        # We have a field to denote whether the user wants to pull out a single value or not
-                        # If no results exist,
-                        if not property_mapping["multiple_results"]:
-                            if len(new_property_value) == 0:
-                                raise Exception(
-                                    "The mapping did not resolve to a single value for the actual record'{0}' property of the '{1}' record type.".format(actual_record_property_name, record_type))
-                            else:
-                                new_property_value = new_property_value[0]
-                        # Set the property value
-                        new_property_name = property_mapping["minimal_record_property"]
-                        normalized_record_body[new_property_name] = new_property_value
-                        # Remove the old property
-                        normalized_record_body.pop(actual_record_property_name)
+
+            # Ignore record types that do not have mappings defined
+            if record_type not in ApiRecordPropertyNameMappings.keys():
+                continue
+
+            # Get the property mapping object
+            try:
+                property_mappings = [x for x in ApiRecordPropertyNameMappings[record_type] if x["actual_record_property"] == actual_record_property_name]
+                if len(property_mappings) > 1:
+                    raise Exception("Too many mappings were defined for the actual record'{0}' property of the '{1}' record type.".format(actual_record_property_name, record_type))
+                elif len(property_mappings) == 0:
+                    continue
+                else:
+                    property_mapping = property_mappings[0]
+            except Exception as ex:
+                raise Exception("An error occurred while examining ApiRecordPropertyNameMappings.") from ex
+
+
+            # Resolve the jsonpath expression
+            jsonpath_string = property_mapping["jsonpath"]
+            new_property_value = jsonpath.jsonpath(actual_record, jsonpath_string)
+
+            # If the path we are searching for does not exist, false is returned
+            # this can happen if for example, the domains list is empty and we
+            # are tyring to access an id property from an element in the list
+            # In this case, we will just deal with an empty list
+            if new_property_value == False:
+                new_property_value = []
+
+            # The json path library will always return a list if the path exists
+            # In some cases, we want the query to return a single result rather than a list
+            # We have a field to denote whether the user wants to pull out a single value or not
+            # If no results exist,
+            if not property_mapping["multiple_results"]:
+                if len(new_property_value) == 0:
+                    raise Exception("The mapping did not resolve to a single value for the actual record'{0}' property of the '{1}' record type.".format(actual_record_property_name, record_type))
+                else:
+                    new_property_value = new_property_value[0]
+
+            # Set the property value
+            new_property_name = property_mapping["minimal_record_property"]
+            normalized_record_body[new_property_name] = new_property_value
+            # Remove the old property
+            normalized_record_body.pop(actual_record_property_name)
 
         normalized_record = { record_type : normalized_record_body}
         return normalized_record
