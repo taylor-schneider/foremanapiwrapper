@@ -48,12 +48,12 @@ ApiRecordPropertyNameMappings = {
 		"direction": "left-to-right",
 		"multiple_results": True
 	},
-		{
-			"minimal_record_property": "provisioning_template_ids",
-			"actual_record_property": "provisioning_templates",
-			"jsonpath": "$.operatingsystem.provisioning_templates.[*].id",
-			"direction": "left-to-right",
-			"multiple_results": True
-		}
+	{
+		"minimal_record_property": "provisioning_template_ids",
+		"actual_record_property": "provisioning_templates",
+		"jsonpath": "$.operatingsystem.provisioning_templates.[*].id",
+		"direction": "left-to-right",
+		"multiple_results": True
+	}
 	]
 }

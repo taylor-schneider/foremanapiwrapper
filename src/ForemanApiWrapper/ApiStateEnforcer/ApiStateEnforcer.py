@@ -113,6 +113,7 @@ class ApiStateEnforcer():
             change_required, reason = self._determine_change_required(desired_state, minimal_record, original_record)
 
             # Print some debug info about the change required
+            logger.debug("foobar")
             logger.debug("Change required: '{0}'".format(change_required))
             logger.debug("Reason: '{0}'".format(reason))
             logger.debug("Actual Record:")
