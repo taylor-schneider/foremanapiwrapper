@@ -172,19 +172,21 @@ class ForemanApiWrapper:
         # This function will return an ordered list of properites for a record
         # The order is intended to indicate the likelihood of producing a unique record
         # when used in a query
-
         record_body = ForemanApiRecord.get_record_body_from_record(record)
         record_properties = list(record_body.keys())
         record_type = ForemanApiRecord.get_record_type_from_record(record)
         preferred_keys = []
+
+        # Some records have preferred identification properties
         if record_type in ApiRecordIdentificationProperties.keys():
             preferred_keys = ApiRecordIdentificationProperties[record_type]
-        if "id" not in record_body.keys() and "id" not in record_body.keys() :
+        # If the id was not listed, mayre sure it is at the front of the list
+        if "id" not in record_body.keys() and "id" not in record_body.keys():
             preferred_keys = ["id"] + preferred_keys
+        # Remove the keys that are not found on the record
         for preferred_key in preferred_keys.copy():
             if preferred_key not in record_properties:
                 preferred_keys.remove(preferred_key)
-
         record_properties = preferred_keys + record_properties
         return record_properties
 
@@ -352,14 +354,13 @@ class ForemanApiWrapper:
                     logging.debug("Record {0} does contain the field {1} and the mathing lower value '{2}'.".format(x, query_key, query_value))
                     matched_records.append(result_record)
 
-        # At this point we will return a single record and ignore multiple records that are returned
-        if len(matched_records) == 1:
-            record =  matched_records[0]
-            record_body = ForemanApiRecord.get_record_body_from_record(record)
-            return record_body
-        else:
+        # If multiple records are returned we cannot determine the correct record
+        # if we found no records we also should stop here
+        if len(matched_records) != 1:
             logging.debug("API returned {0} matches for field '{1}'.".format(len(matched_records), query_key))
             return None
+
+        return matched_records[0]
 
     @staticmethod
     def _get_record_from_results(record_type, results, query_key, query_value):
@@ -386,7 +387,11 @@ class ForemanApiWrapper:
             else:
                 logger.debug("A result set with '{0}' results was returned..".format(len(results["results"])))
                 logger.debug("Using extra query logic to determine if the record was found.")
-                record_body = ForemanApiWrapper._match_record_in_results(record_type, results, query_key, query_value)
+                record = ForemanApiWrapper._match_record_in_results(record_type, results, query_key, query_value)
+                if record is None:
+                    return None
+                else:
+                    return record
 
         if record_body is  None:
             return None
@@ -394,7 +399,7 @@ class ForemanApiWrapper:
         record = {record_type: record_body}
         return record
 
-    def read_record(self, minimal_record):
+    def read_record(self, minimal_record, identification_properties=[]):
 
         # This function will attempt to read a record from the Foreman API
         # It will examine the record properties and construct an api call to lookup the record
@@ -407,7 +412,11 @@ class ForemanApiWrapper:
         try:
             record_type = ForemanApiRecord.get_record_type_from_record(minimal_record)
             http_method = "GET"
-            identification_properties = ForemanApiWrapper._get_record_identifcation_properties(minimal_record)
+            if not identification_properties:
+                logging.debug("Getting Identification properties for record")
+                identification_properties = ForemanApiWrapper._get_record_identifcation_properties(minimal_record)
+            else:
+                logging.debug("Identification properties supplied as: {0}".format(identification_properties))
             logging.debug("Will attempt to find record using the following fields as query parameters:")
             logging.debug(identification_properties)
             for identification_property in identification_properties:
@@ -420,10 +429,23 @@ class ForemanApiWrapper:
                     logging.debug("API call failed:")
                     logging.debug(ex.args[0])
                     continue
+
                 record = ForemanApiWrapper._get_record_from_results(record_type, results, identification_property,  identification_property_value)
+
+                # I have seen that the api will not return full json if a record is not looked up by it's ID
+                # At this point we have found a single record and that record should have an ID
+                # We will do one last lookup here if the property used to identify the record was not an ID
+                if identification_property != 'id':
+                    logging.debug("Doing an additional read to lookup complete record using id field from record.")
+                    partial_record = record
+                    complete_record = self.read_record(partial_record, identification_properties=['id'])
+                    record = complete_record
+                    logging.debug("Lookup successful.")
+
                 if record is None:
                     continue
                 return record
+
             logging.debug("None of the properties matched any existing records.")
         except Exception as e:
             raise Exception("An error occurred while reading the record.") from e

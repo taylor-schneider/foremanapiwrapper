@@ -32,7 +32,6 @@ class Test_ApiStateEnforcer_6_operatingsystem(Test_ApiStateEnforcer):
                 "config_template_ids": [],
                 "description": "CentOS Operating System",
                 "family": "Redhat",
-                "id": 1,
                 "major": "7",
                 "medium_ids": [],
                 "minor": "9.2009",
