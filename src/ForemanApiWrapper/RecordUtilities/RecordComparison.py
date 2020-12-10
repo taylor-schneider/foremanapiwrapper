@@ -122,22 +122,8 @@ def _compare_objects(record_type, minimal_record, actual_record):
 
         # If we got here, compare the two objects
         match = minimal_record == actual_record
-
-        reason = None
-        if isinstance(minimal_record, str):
-            if os.linesep in minimal_record:
-                tmp = [
-                    "The value of the primitive objects did not match:" ,
-                    "+++++++++++++++++++++++++++++++++",
-                    "{0}" ,
-                    "+++++++++++++++++++++++++++++++++",
-                    "{1}",
-                    "+++++++++++++++++++++++++++++++++"
-                ]
-                reason = os.linesep.join(tmp).format(minimal_record, actual_record)
-
-        if reason is None:
-            reason = "The value of the primitive objects did not match: '{0}' vs '{1}'.".format(minimal_record, actual_record)
+        if not match:
+            reason = "The objects were compared as type '{0}' but value of the primitive objects did not match: '{1}' vs '{2}'.".format(type(minimal_record), minimal_record, actual_record)
 
     if match:
         reason ="The obects matched."

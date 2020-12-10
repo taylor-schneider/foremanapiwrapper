@@ -28,7 +28,7 @@ class Test_ApiStateEnforcer_5_medium(Test_ApiStateEnforcer):
             "medium": {
                 "name": "CentOS ISO Mirror",
                 "os_family": "Redhat",
-                "path": "http://15.4.6.2:8081/CentOS/$major.$minor/os/$arch"
+                "path": "http://15.4.5.1:8081/CentOS/$major.$minor/os/$arch"
             }
         }
 
