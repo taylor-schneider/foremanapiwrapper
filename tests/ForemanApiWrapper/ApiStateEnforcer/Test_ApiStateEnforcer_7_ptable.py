@@ -25,7 +25,7 @@ class Test_ApiStateEnforcer_7_ptable(Test_ApiStateEnforcer):
         super(Test_ApiStateEnforcer_7_ptable, self).__init__(*args, **kwargs)
 
     @staticmethod
-    def __minimal_record():
+    def _minimal_record():
 
         return {
             "ptable": {
@@ -53,7 +53,7 @@ class Test_ApiStateEnforcer_7_ptable(Test_ApiStateEnforcer):
     @staticmethod
     def _create_ptable(api_state_enforcer):
         desired_state = "present"
-        minimal_record = Test_ApiStateEnforcer_7_ptable.__minimal_record()
+        minimal_record = Test_ApiStateEnforcer_7_ptable._minimal_record()
         modification_receipt = api_state_enforcer.ensure_state(desired_state, minimal_record)
         return modification_receipt
 
@@ -76,7 +76,7 @@ class Test_ApiStateEnforcer_7_ptable(Test_ApiStateEnforcer):
         Test_ApiStateEnforcer_7_ptable._create_ptable(self.api_state_enforcer)
         # Ensure State
         desired_state = "present"
-        minimal_record = Test_ApiStateEnforcer_7_ptable.__minimal_record()
+        minimal_record = Test_ApiStateEnforcer_7_ptable._minimal_record()
         modification_receipt = self.api_state_enforcer.ensure_state(desired_state, minimal_record)
         self.assertFalse(modification_receipt.changed)
 

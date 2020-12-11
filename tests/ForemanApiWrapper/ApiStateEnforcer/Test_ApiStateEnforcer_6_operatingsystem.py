@@ -24,7 +24,7 @@ class Test_ApiStateEnforcer_6_operatingsystem(Test_ApiStateEnforcer):
         super(Test_ApiStateEnforcer_6_operatingsystem, self).__init__(*args, **kwargs)
 
     @staticmethod
-    def __minimal_record():
+    def _minimal_record():
 
         return {
             "operatingsystem": {
@@ -45,7 +45,7 @@ class Test_ApiStateEnforcer_6_operatingsystem(Test_ApiStateEnforcer):
     @staticmethod
     def _create_operatingsystem(api_state_enforcer):
         desired_state = "present"
-        minimal_record = Test_ApiStateEnforcer_6_operatingsystem.__minimal_record()
+        minimal_record = Test_ApiStateEnforcer_6_operatingsystem._minimal_record()
         modification_receipt = api_state_enforcer.ensure_state(desired_state, minimal_record)
         return modification_receipt
 
@@ -67,7 +67,7 @@ class Test_ApiStateEnforcer_6_operatingsystem(Test_ApiStateEnforcer):
         Test_ApiStateEnforcer_6_operatingsystem._create_operatingsystem(self.api_state_enforcer)
         # Ensure State
         desired_state = "present"
-        minimal_record = Test_ApiStateEnforcer_6_operatingsystem.__minimal_record()
+        minimal_record = Test_ApiStateEnforcer_6_operatingsystem._minimal_record()
         modification_receipt = self.api_state_enforcer.ensure_state(desired_state, minimal_record)
         self.assertFalse(modification_receipt.changed)
 

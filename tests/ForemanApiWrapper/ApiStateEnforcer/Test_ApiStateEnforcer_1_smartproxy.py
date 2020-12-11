@@ -19,7 +19,7 @@ class Test_ApiStateEnforcer_1_smartproxy(Test_ApiStateEnforcer):
         super(Test_ApiStateEnforcer_1_smartproxy, self).__init__(*args, **kwargs)
 
     @staticmethod
-    def __minimal_record():
+    def _minimal_record():
 
         return {
             "smart_proxy": {
@@ -35,7 +35,7 @@ class Test_ApiStateEnforcer_1_smartproxy(Test_ApiStateEnforcer):
     @staticmethod
     def _create_smartproxy(api_state_enforcer):
         desired_state = "present"
-        minimal_record = Test_ApiStateEnforcer_1_smartproxy.__minimal_record()
+        minimal_record = Test_ApiStateEnforcer_1_smartproxy._minimal_record()
         modification_receipt = api_state_enforcer.ensure_state(desired_state, minimal_record)
         return modification_receipt
 
@@ -45,7 +45,7 @@ class Test_ApiStateEnforcer_1_smartproxy(Test_ApiStateEnforcer):
     def test__smartproxy_exists(self):
         Test_ApiStateEnforcer_1_smartproxy._create_smartproxy(self.api_state_enforcer)
         desired_state = "present"
-        minimal_record = Test_ApiStateEnforcer_1_smartproxy.__minimal_record()
+        minimal_record = Test_ApiStateEnforcer_1_smartproxy._minimal_record()
         modification_receipt = self.api_state_enforcer.ensure_state(desired_state, minimal_record)
         self.assertFalse(modification_receipt.changed)
 

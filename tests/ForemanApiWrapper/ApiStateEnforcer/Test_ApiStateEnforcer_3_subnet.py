@@ -20,7 +20,7 @@ class Test_ApiStateEnforcer_3_subnet(Test_ApiStateEnforcer):
         super(Test_ApiStateEnforcer_3_subnet, self).__init__(*args, **kwargs)
 
     @staticmethod
-    def __minimal_record(domain_id, dns_id, dhcp_id, tftp_id):
+    def _minimal_record(domain_id, dns_id, dhcp_id, tftp_id):
 
         return {
             "subnet": {
@@ -41,7 +41,7 @@ class Test_ApiStateEnforcer_3_subnet(Test_ApiStateEnforcer):
     @staticmethod
     def _create_subnet(api_state_enforcer, domain_id, dns_id, dhcp_id, tftp_id):
         desired_state = "present"
-        minimal_record = Test_ApiStateEnforcer_3_subnet.__minimal_record(domain_id, dns_id, dhcp_id, tftp_id)
+        minimal_record = Test_ApiStateEnforcer_3_subnet._minimal_record(domain_id, dns_id, dhcp_id, tftp_id)
         modification_receipt = api_state_enforcer.ensure_state(desired_state, minimal_record)
         return modification_receipt
 
@@ -60,7 +60,7 @@ class Test_ApiStateEnforcer_3_subnet(Test_ApiStateEnforcer):
         Test_ApiStateEnforcer_3_subnet._create_subnet(self.api_state_enforcer, domain_id, dns_id, dhcp_id, tftp_id)
         # Ensure State
         desired_state = "present"
-        minimal_record = Test_ApiStateEnforcer_3_subnet.__minimal_record(domain_id, dns_id, dhcp_id, tftp_id)
+        minimal_record = Test_ApiStateEnforcer_3_subnet._minimal_record(domain_id, dns_id, dhcp_id, tftp_id)
         modification_receipt = self.api_state_enforcer.ensure_state(desired_state, minimal_record)
         self.assertFalse(modification_receipt.changed)
 

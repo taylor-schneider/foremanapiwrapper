@@ -3,6 +3,11 @@ from tests.ForemanApiWrapper.ApiStateEnforcer.Test_ApiStateEnforcer_1_smartproxy
 from tests.ForemanApiWrapper.ApiStateEnforcer.Test_ApiStateEnforcer_2_domain import Test_ApiStateEnforcer_2_domain
 from tests.ForemanApiWrapper.ApiStateEnforcer.Test_ApiStateEnforcer_3_subnet import Test_ApiStateEnforcer_3_subnet
 from tests.ForemanApiWrapper.ApiStateEnforcer.Test_ApiStateEnforcer_4_architecture import Test_ApiStateEnforcer_4_architecture
+from tests.ForemanApiWrapper.ApiStateEnforcer.Test_ApiStateEnforcer_5_medium import Test_ApiStateEnforcer_5_medium
+from tests.ForemanApiWrapper.ApiStateEnforcer.Test_ApiStateEnforcer_6_operatingsystem import Test_ApiStateEnforcer_6_operatingsystem
+from tests.ForemanApiWrapper.ApiStateEnforcer.Test_ApiStateEnforcer_7_ptable import Test_ApiStateEnforcer_7_ptable
+from tests.ForemanApiWrapper.ApiStateEnforcer.Test_ApiStateEnforcer_8_provisioning_template import Test_ApiStateEnforcer_8_provisioning_template
+
 
 import logging
 
@@ -16,33 +21,40 @@ logging.basicConfig(format=logFormat,
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 
-class Test_ApiStateEnforcer_5_medium(Test_ApiStateEnforcer):
+class Test_ApiStateEnforcer_9_os_default_template(Test_ApiStateEnforcer):
 
     def __init__(self, *args, **kwargs):
-        super(Test_ApiStateEnforcer_5_medium, self).__init__(*args, **kwargs)
+        super(Test_ApiStateEnforcer_9_os_default_template, self).__init__(*args, **kwargs)
 
     @staticmethod
-    def _minimal_record():
+    def _minimal_record(operatingsystem_id):
 
-        return {
-            "medium": {
-                "name": "CentOS ISO Mirror",
-                "os_family": "Redhat",
-                "path": "http://15.4.5.1:8081/CentOS/$major.$minor/os/$arch"
+        record = {
+            "dependencies": [
+                Test_ApiStateEnforcer_6_operatingsystem._minimal_record()
+            ],
+            "os_default_template": {
+                "operatingsystem_id": "1",
+                "provisioning_template_id": "128",
+                "template_kind_id": 1
             }
         }
 
+        record["dependencies"][0]["operatingsystem"]["id"] = operatingsystem_id
+
+        return record
+
     @staticmethod
-    def _create_medium(api_state_enforcer):
+    def _create_os_default_template(api_state_enforcer, operatingsystem_id):
         desired_state = "present"
-        minimal_record = Test_ApiStateEnforcer_5_medium._minimal_record()
+        minimal_record = Test_ApiStateEnforcer_9_os_default_template._minimal_record(operatingsystem_id)
         modification_receipt = api_state_enforcer.ensure_state(desired_state, minimal_record)
         return modification_receipt
 
-    def test__medium__create(self):
+    def test__os_default_template__create(self):
         self.fail("Not implemented")
 
-    def test__medium_exists(self):
+    def test__os_default_template_exists(self):
         # Create prereqs
         modification_receipt = Test_ApiStateEnforcer_1_smartproxy._create_smartproxy(self.api_state_enforcer)
         smartproxy_id = modification_receipt.actual_record["smart_proxy"]["id"]
@@ -54,14 +66,19 @@ class Test_ApiStateEnforcer_5_medium(Test_ApiStateEnforcer):
         Test_ApiStateEnforcer_3_subnet._create_subnet(self.api_state_enforcer, domain_id, dns_id, dhcp_id, tftp_id)
         Test_ApiStateEnforcer_4_architecture._create_architecture(self.api_state_enforcer)
         Test_ApiStateEnforcer_5_medium._create_medium(self.api_state_enforcer)
+        modification_receipt = Test_ApiStateEnforcer_6_operatingsystem._create_operatingsystem(self.api_state_enforcer)
+        operatingsystem_id = modification_receipt.actual_record["operatingsystem"]["id"]
+        Test_ApiStateEnforcer_7_ptable._create_ptable(self.api_state_enforcer)
+        Test_ApiStateEnforcer_8_provisioning_template._create_provisioning_template(self.api_state_enforcer)
+        Test_ApiStateEnforcer_9_os_default_template._create_os_default_template(self.api_state_enforcer, operatingsystem_id)
         # Ensure State
         desired_state = "present"
-        minimal_record = Test_ApiStateEnforcer_5_medium._minimal_record()
+        minimal_record = Test_ApiStateEnforcer_9_os_default_template._minimal_record(operatingsystem_id)
         modification_receipt = self.api_state_enforcer.ensure_state(desired_state, minimal_record)
         self.assertFalse(modification_receipt.changed)
 
-    def test__medium__update(self):
+    def test__os_default_template__update(self):
         self.fail("Not implemented")
 
-    def test__medium__delete(self):
+    def test__os_default_template__delete(self):
         self.fail("Not implemented")

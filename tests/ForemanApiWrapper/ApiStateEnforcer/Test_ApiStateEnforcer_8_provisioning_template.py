@@ -26,7 +26,7 @@ class Test_ApiStateEnforcer_8_provisioning_template(Test_ApiStateEnforcer):
         super(Test_ApiStateEnforcer_8_provisioning_template, self).__init__(*args, **kwargs)
 
     @staticmethod
-    def __minimal_record():
+    def _minimal_record():
 
         return {
             "provisioning_template": {
@@ -45,7 +45,7 @@ class Test_ApiStateEnforcer_8_provisioning_template(Test_ApiStateEnforcer):
     @staticmethod
     def _create_provisioning_template(api_state_enforcer):
         desired_state = "present"
-        minimal_record = Test_ApiStateEnforcer_8_provisioning_template.__minimal_record()
+        minimal_record = Test_ApiStateEnforcer_8_provisioning_template._minimal_record()
         modification_receipt = api_state_enforcer.ensure_state(desired_state, minimal_record)
         return modification_receipt
 
@@ -69,7 +69,7 @@ class Test_ApiStateEnforcer_8_provisioning_template(Test_ApiStateEnforcer):
         Test_ApiStateEnforcer_8_provisioning_template._create_provisioning_template(self.api_state_enforcer)
         # Ensure State
         desired_state = "present"
-        minimal_record = Test_ApiStateEnforcer_8_provisioning_template.__minimal_record()
+        minimal_record = Test_ApiStateEnforcer_8_provisioning_template._minimal_record()
         modification_receipt = self.api_state_enforcer.ensure_state(desired_state, minimal_record)
         self.assertFalse(modification_receipt.changed)
 

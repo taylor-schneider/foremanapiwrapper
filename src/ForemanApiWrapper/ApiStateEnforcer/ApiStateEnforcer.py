@@ -70,12 +70,11 @@ class ApiStateEnforcer():
         try:
             logging.debug("Desired state is as follows:" + os.linesep + yaml.dump(minimal_record))
 
-            logger.debug("Ensuring record is '{0}'".format(desired_state))
-
             if desired_state.lower() not in ["present", "absent"]:
                 raise Exception("The specified desired state '{0}' was not valid.".format(desired_state))
 
             record_type = ForemanApiRecord.get_record_type_from_record(minimal_record)
+            logger.debug("Ensuring {0} record is '{1}'".format(record_type, desired_state))
 
             # Get the current state as some fields may exist which are not present on our minimal state represenation
             # If the record doesn't exist, the api will throw a 404 which we can ignore

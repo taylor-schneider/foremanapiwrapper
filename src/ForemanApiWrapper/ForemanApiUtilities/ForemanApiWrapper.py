@@ -9,7 +9,7 @@ from ForemanApiWrapper.ForemanApiUtilities.ModifiedRecordMismatchException impor
 from ForemanApiWrapper.ForemanApiUtilities.Mappings.ApiRecordIdentificationProperties import ApiRecordIdentificationProperties
 from ForemanApiWrapper.ForemanApiUtilities.Mappings.ApiRecordPropertyNameMappings import ApiRecordPropertyNameMappings
 from ForemanApiWrapper.ForemanApiUtilities.Mappings.ApiRecordToUrlSuffixMapping import ApiRecordToUrlSuffixMapping
-
+from ForemanApiWrapper.RecordUtilities import RecordComparison
 
 logger = logging.getLogger()
 
@@ -157,11 +157,10 @@ class ForemanApiWrapper:
 
                 for x in range(0, len(record_dependencies)):
                     record_dependency = record_dependencies[x]
-                    id = ForemanApiRecord.get_id_from_record(record_dependency)
+                    dependency_id = ForemanApiRecord.get_id_from_record(record_dependency)
                     dependency_suffix = ForemanApiWrapper._determine_record_suffix(record_dependency)
-                    tmp_suffix += "{0}/{1}".format(dependency_suffix, id)
-
-                endpoint_suffix = "{0}{1}".format(tmp_suffix, endpoint_suffix)
+                    tmp_suffix += "{0}/{1}".format(dependency_suffix, dependency_id)
+                    endpoint_suffix = "{0}{1}".format(tmp_suffix, endpoint_suffix)
 
             return endpoint_suffix
         except Exception as e:
@@ -319,8 +318,7 @@ class ForemanApiWrapper:
         except Exception as e:
             raise Exception("An error occurred while determine the api endpoint for the specified record.")
 
-    @staticmethod
-    def _match_record_in_results(record_type, results, query_key, query_value):
+    def _match_record_in_results(self, minimal_record, record_type, results, query_key, query_value):
 
         # There is a bug in the foreman api:
         # Sometimes the API will lie and give us records which do not match the query string
@@ -334,27 +332,48 @@ class ForemanApiWrapper:
         matched_records = []
 
         logging.debug("Checking if any of the records in the result set contain the correct field and value.")
+        logging.debug("The key was '{0}' while the value was '{1}'.".format(query_key, query_value))
         l = len(results["results"])
         for x in range(0, l):
+
+            # The results are not a complete record, we will need to lookup the correct record
             result_record_body = results["results"][x]
             result_record = {record_type: result_record_body}
-            if query_key not in result_record_body.keys():
+
+            # We may have dependencies on the record which will help us to a lookup
+            if "dependencies" in minimal_record.keys():
+                dependencies = minimal_record["dependencies"]
+                result_record["dependencies"] = dependencies
+
+            # Do the lookup and get the complete record
+            looked_up_record = self._lookup_record_using_partial(result_record)
+            looked_up_record_body = ForemanApiRecord.get_record_body_from_record(looked_up_record)
+
+            # If the query key does not match we can throw it away
+            if query_key not in looked_up_record_body.keys():
                 logging.debug("Record {0} does not contain the field '{1}'.".format(x, query_key))
                 continue
-            result_property_value = result_record_body[query_key]
-            if query_value == result_property_value:
+
+            # check if the values match
+            result_property_value = looked_up_record_body[query_key]
+            match, reason = RecordComparison._compare_objects(record_type, query_value, result_property_value)
+            if match:
                 logging.debug("Record {0} does contain the field '{1}' and the matching value '{2}'.".format(x, query_key, query_value))
                 matched_records.append(result_record)
+                continue
 
             # As mentioned in the function to create the query string,
             # sometimes the API will convert values to lower case for the GET
             # It hasn't happened enough to require I tweak the mapping file yet
             elif query_key in ["mac"]:
                 if query_value.lower() == result_property_value.lower():
-                    logging.debug("Record {0} does contain the field {1} and the mathing lower value '{2}'.".format(x, query_key, query_value))
+                    logging.debug("Record {0} does contain the field {1} and the matching lower value '{2}'.".format(x, query_key, query_value))
                     matched_records.append(result_record)
+                    continue
 
-        # If multiple records are returned we cannot determine the correct record
+            logging .debug("Record {0} did not match.".format(x))
+
+        # If multiple records are matched we cannot determine the correct record
         # if we found no records we also should stop here
         if len(matched_records) != 1:
             logging.debug("API returned {0} matches for field '{1}'.".format(len(matched_records), query_key))
@@ -362,8 +381,7 @@ class ForemanApiWrapper:
 
         return matched_records[0]
 
-    @staticmethod
-    def _get_record_from_results(record_type, results, query_key, query_value):
+    def _get_record_from_results(self, minimal_record, record_type, results, query_key, query_value):
 
         # The api my return a single record, or a result set
         # If a result set is returned, the key "results" will appear in the object
@@ -387,7 +405,7 @@ class ForemanApiWrapper:
             else:
                 logger.debug("A result set with '{0}' results was returned..".format(len(results["results"])))
                 logger.debug("Using extra query logic to determine if the record was found.")
-                record = ForemanApiWrapper._match_record_in_results(record_type, results, query_key, query_value)
+                record = self._match_record_in_results(minimal_record, record_type, results, query_key, query_value)
                 if record is None:
                     return None
                 else:
@@ -397,6 +415,13 @@ class ForemanApiWrapper:
             return None
 
         record = {record_type: record_body}
+        return record
+
+    def _lookup_record_using_partial(self, partial_record):
+        logging.debug("Doing an additional read to lookup complete record using id field from record.")
+        complete_record = self.read_record(partial_record, identification_properties=['id'])
+        record = complete_record
+        logging.debug("Lookup successful.")
         return record
 
     def read_record(self, minimal_record, identification_properties=[]):
@@ -430,7 +455,7 @@ class ForemanApiWrapper:
                     logging.debug(ex.args[0])
                     continue
 
-                record = ForemanApiWrapper._get_record_from_results(record_type, results, identification_property,  identification_property_value)
+                record = self._get_record_from_results(minimal_record, record_type, results, identification_property,  identification_property_value)
 
                 # If we got none, we did not identify the record with the specified property. We will keep looking
                 if record is None:
@@ -440,11 +465,8 @@ class ForemanApiWrapper:
                 # At this point we have found a single record and that record should have an ID
                 # We will do one last lookup here if the property used to identify the record was not an ID
                 if identification_property != 'id':
-                    logging.debug("Doing an additional read to lookup complete record using id field from record.")
                     partial_record = record
-                    complete_record = self.read_record(partial_record, identification_properties=['id'])
-                    record = complete_record
-                    logging.debug("Lookup successful.")
+                    record = self._lookup_record_using_partial(partial_record)
 
                 return record
 

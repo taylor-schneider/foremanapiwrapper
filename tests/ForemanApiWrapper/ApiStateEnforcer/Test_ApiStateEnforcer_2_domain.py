@@ -21,7 +21,7 @@ class Test_ApiStateEnforcer_2_domain(Test_ApiStateEnforcer):
         super(Test_ApiStateEnforcer_2_domain, self).__init__(*args, **kwargs)
 
     @staticmethod
-    def __minimal_record(dns_id):
+    def _minimal_record(dns_id):
 
         return {
             "domain": {
@@ -33,7 +33,7 @@ class Test_ApiStateEnforcer_2_domain(Test_ApiStateEnforcer):
     @staticmethod
     def _create_domain(api_state_enforcer, dns_id):
         desired_state = "present"
-        minimal_record = Test_ApiStateEnforcer_2_domain.__minimal_record(dns_id)
+        minimal_record = Test_ApiStateEnforcer_2_domain._minimal_record(dns_id)
         modification_receipt = api_state_enforcer.ensure_state(desired_state, minimal_record)
         return modification_receipt
 
@@ -46,7 +46,7 @@ class Test_ApiStateEnforcer_2_domain(Test_ApiStateEnforcer):
         dns_id = modification_result.actual_record["smart_proxy"]["id"]
         # Ensure State
         desired_state = "present"
-        minimal_record = Test_ApiStateEnforcer_2_domain.__minimal_record(dns_id)
+        minimal_record = Test_ApiStateEnforcer_2_domain._minimal_record(dns_id)
         modification_receipt = self.api_state_enforcer.ensure_state(desired_state, minimal_record)
         self.assertFalse(modification_receipt.changed)
 
