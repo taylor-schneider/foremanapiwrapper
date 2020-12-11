@@ -11,7 +11,8 @@
 # 		}
 
 ApiRecordPropertyNameMappings = {
-	"subnet": [{
+	"subnet": [
+		{
 			"minimal_record_property": "domain_ids",
 			"actual_record_property": "domains",
 			"jsonpath": "$.subnet.domains.[*].id",
@@ -19,7 +20,8 @@ ApiRecordPropertyNameMappings = {
 			"multiple_results": True
 		}
 	],
-	"provisioning_template": [{
+	"provisioning_template": [
+		{
 			"minimal_record_property": "operatingsystem_ids",
 			"actual_record_property": "operatingsystems",
 			"jsonpath": "$.provisioning_template.operatingsystems.[*].id",
@@ -27,33 +29,43 @@ ApiRecordPropertyNameMappings = {
 			"multiple_results": True
 		}
 	],
-	"operatingsystem": [{
-		"minimal_record_property": "architecture_ids",
-		"actual_record_property": "architectures",
-		"jsonpath": "$.operatingsystem.architectures.[*].id",
-		"direction": "left-to-right",
-		"multiple_results": True
-	},
-	{
-		"minimal_record_property": "ptable_ids",
-		"actual_record_property": "ptables",
-		"jsonpath": "$.operatingsystem.ptables.[*].id",
-		"direction": "left-to-right",
-		"multiple_results": True
-	},
-	{
-		"minimal_record_property": "medium_ids",
-		"actual_record_property": "media",
-		"jsonpath": "$.operatingsystem.media.[*].id",
-		"direction": "left-to-right",
-		"multiple_results": True
-	},
-	{
-		"minimal_record_property": "provisioning_template_ids",
-		"actual_record_property": "provisioning_templates",
-		"jsonpath": "$.operatingsystem.provisioning_templates.[*].id",
-		"direction": "left-to-right",
-		"multiple_results": True
-	}
+	"operatingsystem": [
+		{
+			"minimal_record_property": "architecture_ids",
+			"actual_record_property": "architectures",
+			"jsonpath": "$.operatingsystem.architectures.[*].id",
+			"direction": "left-to-right",
+			"multiple_results": True
+		},
+		{
+			"minimal_record_property": "ptable_ids",
+			"actual_record_property": "ptables",
+			"jsonpath": "$.operatingsystem.ptables.[*].id",
+			"direction": "left-to-right",
+			"multiple_results": True
+		},
+		{
+			"minimal_record_property": "medium_ids",
+			"actual_record_property": "media",
+			"jsonpath": "$.operatingsystem.media.[*].id",
+			"direction": "left-to-right",
+			"multiple_results": True
+		},
+		{
+			"minimal_record_property": "provisioning_template_ids",
+			"actual_record_property": "provisioning_templates",
+			"jsonpath": "$.operatingsystem.provisioning_templates.[*].id",
+			"direction": "left-to-right",
+			"multiple_results": True
+		}
+	],
+	"ptable": [
+		{
+			"minimal_record_property": "operatingsystem_ids",
+			"actual_record_property": "operatingsystems",
+			"jsonpath": "$.ptable.operatingsystems.[*].id",
+			"direction": "left-to-right",
+			"multiple_results": True
+		}
 	]
 }

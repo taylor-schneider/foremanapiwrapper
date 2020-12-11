@@ -26,6 +26,10 @@ def _compare_dicts(record_type, minimal_record_state, actual_record_state):
             # 2. The operatingsystem has an undocumented parameter config_template_ids on POST but not the others
             if record_type == "operatingsystem" and key == "config_template_ids":
                 continue
+            # 3. The provisioning_template allows you to specify an audit_comment when putting a record
+            # This is like a commit message and does not show up on the get
+            if record_type == "provisioning_template" and key == "audit_comment":
+                continue
 
             # If not an exception call out the issue
             key_missing_message = "The key '{0}' was not found on the actual record.".format(key)

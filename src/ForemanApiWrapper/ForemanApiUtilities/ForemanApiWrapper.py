@@ -432,6 +432,10 @@ class ForemanApiWrapper:
 
                 record = ForemanApiWrapper._get_record_from_results(record_type, results, identification_property,  identification_property_value)
 
+                # If we got none, we did not identify the record with the specified property. We will keep looking
+                if record is None:
+                    continue
+
                 # I have seen that the api will not return full json if a record is not looked up by it's ID
                 # At this point we have found a single record and that record should have an ID
                 # We will do one last lookup here if the property used to identify the record was not an ID
@@ -442,8 +446,6 @@ class ForemanApiWrapper:
                     record = complete_record
                     logging.debug("Lookup successful.")
 
-                if record is None:
-                    continue
                 return record
 
             logging.debug("None of the properties matched any existing records.")
