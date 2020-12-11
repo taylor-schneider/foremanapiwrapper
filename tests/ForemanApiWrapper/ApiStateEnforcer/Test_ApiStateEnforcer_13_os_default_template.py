@@ -6,7 +6,7 @@ from tests.ForemanApiWrapper.ApiStateEnforcer.Test_ApiStateEnforcer_4_architectu
 from tests.ForemanApiWrapper.ApiStateEnforcer.Test_ApiStateEnforcer_5_medium import Test_ApiStateEnforcer_5_medium
 from tests.ForemanApiWrapper.ApiStateEnforcer.Test_ApiStateEnforcer_6_operatingsystem import Test_ApiStateEnforcer_6_operatingsystem
 from tests.ForemanApiWrapper.ApiStateEnforcer.Test_ApiStateEnforcer_7_ptable import Test_ApiStateEnforcer_7_ptable
-from tests.ForemanApiWrapper.ApiStateEnforcer.Test_ApiStateEnforcer_8_provisioning_template import Test_ApiStateEnforcer_8_provisioning_template
+from tests.ForemanApiWrapper.ApiStateEnforcer.Test_ApiStateEnforcer_8_pxelinux_provisioning_template import Test_ApiStateEnforcer_8_pxelinux_provisioning_template
 
 
 import logging
@@ -69,7 +69,7 @@ class Test_ApiStateEnforcer_9_os_default_template(Test_ApiStateEnforcer):
         modification_receipt = Test_ApiStateEnforcer_6_operatingsystem._create_operatingsystem(self.api_state_enforcer)
         operatingsystem_id = modification_receipt.actual_record["operatingsystem"]["id"]
         Test_ApiStateEnforcer_7_ptable._create_ptable(self.api_state_enforcer)
-        Test_ApiStateEnforcer_8_provisioning_template._create_provisioning_template(self.api_state_enforcer)
+        Test_ApiStateEnforcer_8_pxelinux_provisioning_template._create_pxelinux_provisioning_template(self.api_state_enforcer)
         Test_ApiStateEnforcer_9_os_default_template._create_os_default_template(self.api_state_enforcer, operatingsystem_id)
         # Ensure State
         desired_state = "present"
