@@ -125,7 +125,7 @@ def confirm_modified_record_identity(record_identifier, record_type, record_to_c
             if record_body[identifier_field] == record_identifier:
                 return
 
-        raise Exception("The record did' not match the identifier '{0}' supplied.".format(record_identifier))
+        raise Exception("The record did not match the identifier '{0}' supplied.".format(record_identifier))
     except Exception as e:
         raise Exception("The record identity could not be confirmed.") from e
 

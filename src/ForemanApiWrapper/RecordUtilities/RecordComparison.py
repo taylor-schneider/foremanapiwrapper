@@ -5,6 +5,55 @@ import jsonpath
 import os
 
 
+def _normalize_primitive(minimal_primitive, actual_primitive):
+    try:
+        # Call the constructor of the minimal record type
+        new_actual_record = type(minimal_primitive)(actual_primitive)
+        actual_primitive = new_actual_record
+        return actual_primitive, ""
+    except:
+        return actual_primitive, "The primitive could not be normalized."
+
+
+def _compare_primitives(record_type, minimal_primitive, actual_primitive, primitive_key=None):
+
+    reason = ""
+
+    # Check that the two objects are the same type
+    # If they are not, we want to allow for stupid humans
+    # for example the human may specify a string but the API returns an int
+    # See if we can convert the the actual into the type of the minimal
+    if type(minimal_primitive) != type(actual_primitive):
+        reason += " The objects will be normalized because the are not the same type. '{0}' vs. '{1}'.".format(type(minimal_primitive), type(actual_primitive))
+        actual_primitive, tmp_reason = _normalize_primitive(minimal_primitive, actual_primitive)
+        reason += tmp_reason
+
+    # There are some exceptions to handle here
+    #
+    # 1. The host name field is different between the GET and POST/PUT
+    # The name in the GET has the fqdn added to the end of the name
+    # The POST/PUT is just the host name and it lacks the fqdn suffix
+    # We will to our best to do the logic and make a comparison
+    if primitive_key is not None:
+        if record_type == "host" and primitive_key == "name":
+            try:
+                reason += " Adjusting the name field for the host."
+                actual_primitive = actual_primitive.split(".")[0]
+            except:
+                pass
+
+    match = minimal_primitive == actual_primitive
+
+    if match:
+        reason +=" The primitives matched."
+    else:
+        reason += " The primitives were compared as type '{0}' but values did not match: '{1}' vs '{2}'.".format(type(minimal_primitive), minimal_primitive, actual_primitive)
+
+    reason = reason.strip(" ")
+
+    return match, reason
+
+
 def _compare_dicts(record_type, minimal_record_state, actual_record_state):
 
     actual_keys = list(actual_record_state.keys())
@@ -43,21 +92,10 @@ def _compare_dicts(record_type, minimal_record_state, actual_record_state):
         minimal_value = minimal_record_state[key]
         actual_value = actual_record_state[key]
 
-        # There are again some exceptions to handle here
-        #
-        # 1. The host name field is different between the GET and POST/PUT
-        # The name in the GET has the fqdn added to the end of the name
-        # The POST/PUT is just the host name and it lacks the fqdn suffix
-        # We will to our best to do the logic and make a comparison
-        if record_type == "host" and key == "name":
-            try:
-                actual_value = _normalize_actual_record(minimal_value, actual_value)
-                actual_value = actual_value.split(".")[0]
-            except:
-                pass
-
         # Now we compare the values
         comparison_result, reason = _compare_objects(record_type, minimal_value, actual_value)
+
+        # Return if there was a mismatch
         if not comparison_result:
             key_mismatch_message = "The keys '{0}' did not match.".format(key)
             return False, " ".join([dict_mismatch_message, key_mismatch_message, reason])
@@ -97,16 +135,8 @@ def _compare_lists(record_type, minimal_record_state, actual_record_state):
     # If we got here without exiting, we match!
     return True, "All the elements in the list match."
 
-def _normalize_actual_record(minimal_record, actual_record):
-    try:
-        # Call the constructor of the minimal record type
-        new_actual_record = type(minimal_record)(actual_record)
-        actual_record = new_actual_record
-        return actual_record
-    except:
-        return actual_record
 
-def _compare_objects(record_type, minimal_record, actual_record):
+def _compare_objects(record_type, minimal_record, actual_record, record_key=None):
     # This function will return true or false based on whether or not the
     # actual state represents the minimal state
     #       Ie. All the keys/values in minimal state exist in actual
@@ -137,25 +167,14 @@ def _compare_objects(record_type, minimal_record, actual_record):
 
     # primitive objects should compare just fine
     else:
-
-        # Check that the two objects are the same type
-        # If they are not, we want to allow for stupid humans
-        # for example the human may specify a string but the API returns an int
-        # See if we can convert the the actual into the type of the minimal
-        # This will likely only work with primitives
-        if type(minimal_record) != type(actual_record):
-            actual_record = _normalize_actual_record(minimal_record, actual_record)
-            reason = "The objects were not the same type. '{0}' vs. '{1}'.".format(type(minimal_record), type(actual_record))
-
-        # If we got here, compare the two objects
-        match = minimal_record == actual_record
-        if not match:
-            reason += "The objects were compared as type '{0}' but value of the primitive objects did not match: '{1}' vs '{2}'.".format(type(minimal_record), minimal_record, actual_record)
+        match, reason = _compare_primitives(record_type, minimal_record, actual_record, record_key)
 
     if match:
-        reason ="The obects matched."
+        reason +="The obects matched."
     else:
         reason = " ".join([object_mismatch_message, reason])
+
+    reason = reason.strip()
 
     return match, reason
 
