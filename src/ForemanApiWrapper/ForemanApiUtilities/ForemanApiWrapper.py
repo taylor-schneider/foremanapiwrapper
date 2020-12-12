@@ -24,7 +24,7 @@ else:
 class ForemanApiWrapper:
 
     _api_call_error_message = "An error occurred while making an API call. The message could not be extracted. Check json results for more details."
-    _modified_record_mismatch_message = "The modified record's 'name' or 'id' fields did not match those supplied in the api url."
+    _modified_record_mismatch_message = "The API modified a different record than the one supplied."
 
     def __init__(self, username, password, url, verify_ssl):
         self.username = username
@@ -554,8 +554,7 @@ class ForemanApiWrapper:
             # Verify that the updated record has the same id as the minimal record
             # Raise an exception if it does not
             try:
-                record_identifier_field, record_identifier = ForemanApiRecord.get_identifier_from_record(minimal_record)
-                ForemanApiRecord.confirm_modified_record_identity(record_identifier, record_type, updated_record)
+                ForemanApiRecord.confirm_modified_record_identity(minimal_record, updated_record)
             except Exception as e:
                 raise ModifiedRecordMismatchException(
                     self._modified_record_mismatch_message,

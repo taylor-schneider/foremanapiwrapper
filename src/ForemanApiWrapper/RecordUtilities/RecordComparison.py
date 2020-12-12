@@ -93,7 +93,7 @@ def _compare_dicts(record_type, minimal_record_state, actual_record_state):
         actual_value = actual_record_state[key]
 
         # Now we compare the values
-        comparison_result, reason = _compare_objects(record_type, minimal_value, actual_value)
+        comparison_result, reason = _compare_objects(record_type, minimal_value, actual_value, key)
 
         # Return if there was a mismatch
         if not comparison_result:
