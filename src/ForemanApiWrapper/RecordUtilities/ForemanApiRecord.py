@@ -1,4 +1,7 @@
 from ForemanApiWrapper.ForemanApiUtilities.Mappings.ApiRecordIdentificationProperties import ApiRecordIdentificationProperties
+from ForemanApiWrapper.RecordUtilities import RecordComparison
+import logging
+
 
 def get_record_type_from_record(record):
     try:
@@ -10,8 +13,8 @@ def get_record_type_from_record(record):
         keys = list(record.keys())
         if "dependencies" in keys:
             keys.remove("dependencies")
-        recordType = keys[0]
-        return recordType
+        record_type = keys[0]
+        return record_type
 
     except Exception as e:
         raise Exception("Could not determine the record type from the record.") from e
@@ -26,54 +29,32 @@ def get_record_identifcation_properties(record):
     # This function will return an ordered list of properties which can be used to identify a record
     # The order is intended to indicate the likelihood of producing a unique record
     # when used in a query
-    record_body = get_record_body_from_record(record)
-    record_properties = list(record_body.keys())
+
     record_type = get_record_type_from_record(record)
-    preferred_keys = []
+
+    # Start with the id and name fields
+    identification_properties = ["id", "name"]
 
     # Some records have preferred identification properties
+    # Retrieve them and add them to the list
     if record_type in ApiRecordIdentificationProperties.keys():
-        preferred_keys = ApiRecordIdentificationProperties[record_type]
-
-    # If the id was not listed, make sure it is at the front of the list
-    if "id" not in record_body.keys() and "id" not in record_body.keys():
-        preferred_keys = ["id"] + preferred_keys
+        identification_properties += ApiRecordIdentificationProperties[record_type]
 
     # Remove the keys that are not found on the record
-    for preferred_key in preferred_keys.copy():
-        if preferred_key not in record_properties:
-            preferred_keys.remove(preferred_key)
-
-    record_properties = preferred_keys + record_properties
-    record_properties = list(set(record_properties))
-    return record_properties
-
-
-def get_identifier_from_record(record):
-
-    # When checking if a record exists, several fields can be used
-    # The name nad id fields are generally interchangable
-    # an example record:
-    #   {
-    #       environment:  {
-    #           "name": "some_environment"
-    #       }
-    #   }
-    # In some cases the API is not consistent and other fields are used
-    # The exceptions to the rule are stored in the mappings
-    #
-    # This function will return a tuple containing the field name and the value
-    #
-
-    identifier_fields = get_record_identifcation_properties(record)
     record_body = get_record_body_from_record(record)
-    for identifier_field in identifier_fields:
-        if identifier_field in record_body.keys():
-            identifier_field_value = record_body[identifier_field]
-            return identifier_field, identifier_field_value
+    record_properties = list(record_body.keys())
+    for identification_property in identification_properties.copy():
+        if identification_property not in record_properties:
+            identification_properties.remove(identification_property)
 
-    raise Exception("Could not determine the identifier for the record.")
+    # Dedupe the list
+    identification_properties = list(set(identification_properties))
 
+    # Raise an exception if the list is empty
+    if len(identification_properties) == 0:
+        raise Exception("Unable to determine identification properties for the record.")
+
+    return identification_properties
 
 def get_id_from_record(record):
     record_body = get_record_body_from_record(record)
@@ -102,30 +83,20 @@ def get_name_or_id_from_record(record):
         raise Exception("Unable to determine name or id for record.")
 
 
-def confirm_modified_record_identity(record_identifier, record_type, record_to_confirm):
-
-    # The name or id fields on a record can be used to confirm identity
-    # Using IDs is the safest choice, but not possible in all circumstances
-    #       For example, when deleting records, one may only know the name upfront
-    # In some cases other fields may be used based on the record type
-    #       They are specified in the mappings
-    # The record_identifier is a value for on of identifier fields
-    # We need to check that the record_to_confirm has an identifier field with this value
-
+def confirm_modified_record_identity(minimal_record, record_to_confirm):
     try:
-        record_to_confirm_type = get_record_type_from_record(record_to_confirm)
-
-        if record_type != record_to_confirm_type:
-            raise Exception("The record types did not match: '{0}' vs '{1}'.".format(record_type, record_to_confirm_type))
-
-        identifier_fields = get_record_identifcation_properties(record_to_confirm)
-        record_body = get_record_body_from_record(record_to_confirm)
-
-        for identifier_field in identifier_fields:
-            if record_body[identifier_field] == record_identifier:
-                return
-
-        raise Exception("The record did not match the identifier '{0}' supplied.".format(record_identifier))
+        logging.debug("Confirming record identity")
+        record_type = get_record_type_from_record(minimal_record)
+        identification_field_names = get_record_identifcation_properties(minimal_record)
+        for identification_field_name in identification_field_names:
+            if identification_field_name in record_to_confirm[record_type].keys():
+                logging.debug("Comparing field named {0}.".format(identification_field_name))
+                minimal_value = minimal_record[record_type][identification_field_name]
+                confirmation_value = minimal_record[record_type][identification_field_name]
+                match, reason = RecordComparison._compare_primitives(record_type, minimal_value, confirmation_value, identification_field_name)
+                if match:
+                    logging.debug("Identity Confirmed")
+                    return
     except Exception as e:
         raise Exception("The record identity could not be confirmed.") from e
 

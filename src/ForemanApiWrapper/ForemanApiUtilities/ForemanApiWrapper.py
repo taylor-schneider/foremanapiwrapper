@@ -578,12 +578,15 @@ class ForemanApiWrapper:
         # that the deleted record matches the url supplied
 
         try:
-            # First we determine the url we will be submitting to
-            base_delete_url = self._determine_api_endpoint_for_record(minimal_record, include_query=False)
-            field, record_identifier = ForemanApiRecord.get_identifier_from_record(minimal_record)
-            delete_url = "{0}/{1}".format(base_delete_url, record_identifier)
+            # If the record is going to be deleted, we need to establish the identifying property
+            identification_field_name = ForemanApiRecord.get_record_identifcation_properties(minimal_record)[0]
+            minimal_record_type = ForemanApiRecord.get_record_type_from_record(minimal_record)
+            identification_field_value = minimal_record[minimal_record_type][identification_field_name]
 
+            # Determine the url we will be submitting to
             http_method = "DELETE"
+            base_delete_url = self._determine_api_endpoint_for_record(minimal_record, include_query=False)
+            delete_url = "{0}/{1}".format(base_delete_url, identification_field_value)
 
             # We may need to convert the record based on the API endpoint being used
             # The API is inconsistent in the way it represents data
@@ -591,16 +594,15 @@ class ForemanApiWrapper:
 
             # The api call will expect the arguments in a certain form
             api_call_arguments = ForemanApiWrapper._get_api_call_arguments(record_for_delete)
-            minimal_record_type = ForemanApiRecord.get_record_type_from_record(minimal_record)
             deleted_record_body = self.make_api_call(delete_url, http_method, api_call_arguments, None)
             deleted_record = {
                 minimal_record_type: deleted_record_body
             }
 
-            # Verify that the updated record has the same id as the minimal record
+            # Verify that the updated record has the same value for the identification field
             # Raise an exception if it does not
             try:
-                ForemanApiRecord.confirm_modified_record_identity(record_identifier, minimal_record_type, deleted_record)
+                ForemanApiRecord.confirm_modified_record_identity(minimal_record, deleted_record)
             except Exception as e:
                 raise ModifiedRecordMismatchException(
                     self._modified_record_mismatch_message,

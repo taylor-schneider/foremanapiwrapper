@@ -141,6 +141,47 @@ class Test_ApiStateEnforcer_15_host(Test_ApiStateEnforcer):
         modification_receipt = self.api_state_enforcer.ensure_state(desired_state, minimal_record)
         self.assertTrue(modification_receipt.changed)
 
+    def test__host__delete__using_name(self):
+        # Create prereqs
+        modification_receipt = Test_ApiStateEnforcer_1_smartproxy._create_smartproxy(self.api_state_enforcer)
+        smartproxy_id = modification_receipt.actual_record["smart_proxy"]["id"]
+        dns_id = smartproxy_id
+        dhcp_id = smartproxy_id
+        tftp_id = smartproxy_id
+        modification_receipt = Test_ApiStateEnforcer_2_domain._create_domain(self.api_state_enforcer, dns_id)
+        domain_id = modification_receipt.actual_record["domain"]["id"]
+        modification_receipt = Test_ApiStateEnforcer_3_subnet._create_subnet(self.api_state_enforcer, domain_id, dns_id, dhcp_id, tftp_id)
+        subnet_id = modification_receipt.actual_record["subnet"]["id"]
+        modification_receipt = Test_ApiStateEnforcer_4_architecture._create_architecture(self.api_state_enforcer)
+        architecture_id = modification_receipt.actual_record["architecture"]["id"]
+        modification_receipt = Test_ApiStateEnforcer_5_medium._create_medium(self.api_state_enforcer)
+        medium_id = modification_receipt.actual_record["medium"]["id"]
+        modification_receipt = Test_ApiStateEnforcer_6_operatingsystem._create_operatingsystem(self.api_state_enforcer)
+        operatingsystem_id = modification_receipt.actual_record["operatingsystem"]["id"]
+        operatingsystem_record = modification_receipt.actual_record
+        modification_receipt = Test_ApiStateEnforcer_7_ptable._create_ptable(self.api_state_enforcer)
+        ptable_id = modification_receipt.actual_record["ptable"]["id"]
+        modification_receipt = Test_ApiStateEnforcer_8_pxelinux_provisioning_template._create_pxelinux_provisioning_template(self.api_state_enforcer, operatingsystem_id)
+        pxelinux_id = modification_receipt.actual_record["provisioning_template"]["id"]
+        modification_receipt = Test_ApiStateEnforcer_9_answerfile_provisioning_template._create_answefile_provisioning_template(self.api_state_enforcer, operatingsystem_id)
+        answerfile_id = modification_receipt.actual_record["provisioning_template"]["id"]
+        Test_ApiStateEnforcer_10_link_os_with_templates._create_operatingsystem(self.api_state_enforcer, architecture_id, answerfile_id, medium_id, pxelinux_id, ptable_id)
+        Test_ApiStateEnforcer_11_link_pxelinux_with_os._create_provisioning_template(self.api_state_enforcer, operatingsystem_id)
+        Test_ApiStateEnforcer_12_link_answerfile_with_os._create_provisioning_template(self.api_state_enforcer, operatingsystem_id)
+        Test_ApiStateEnforcer_13_default_pxelinux._create_os_default_template(self.api_state_enforcer, operatingsystem_record, pxelinux_id)
+        Test_ApiStateEnforcer_14_default_answerfile._create_os_default_template(self.api_state_enforcer, operatingsystem_record, answerfile_id)
+        modification_receipt = Test_ApiStateEnforcer_15_host._create_host(self.api_state_enforcer, architecture_id, domain_id, medium_id, operatingsystem_id, ptable_id, subnet_id)
+        host_name = modification_receipt.actual_record["host"]["name"]
+        # Ensure State
+        desired_state = "absent"
+        minimal_record = {
+            "host": {
+                "name": host_name
+            }
+        }
+        modification_receipt = self.api_state_enforcer.ensure_state(desired_state, minimal_record)
+        self.assertTrue(modification_receipt.changed)
+
     def test__host__delete__adhoc_using_id(self):
         # Ensure State
         desired_state = "absent"
