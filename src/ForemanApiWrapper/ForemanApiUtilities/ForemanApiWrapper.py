@@ -167,29 +167,6 @@ class ForemanApiWrapper:
             raise Exception("An error occurred while determining the url suffix for the record.") from e
 
     @staticmethod
-    def _get_record_identifcation_properties(record):
-        # This function will return an ordered list of properites for a record
-        # The order is intended to indicate the likelihood of producing a unique record
-        # when used in a query
-        record_body = ForemanApiRecord.get_record_body_from_record(record)
-        record_properties = list(record_body.keys())
-        record_type = ForemanApiRecord.get_record_type_from_record(record)
-        preferred_keys = []
-
-        # Some records have preferred identification properties
-        if record_type in ApiRecordIdentificationProperties.keys():
-            preferred_keys = ApiRecordIdentificationProperties[record_type]
-        # If the id was not listed, mayre sure it is at the front of the list
-        if "id" not in record_body.keys() and "id" not in record_body.keys():
-            preferred_keys = ["id"] + preferred_keys
-        # Remove the keys that are not found on the record
-        for preferred_key in preferred_keys.copy():
-            if preferred_key not in record_properties:
-                preferred_keys.remove(preferred_key)
-        record_properties = preferred_keys + record_properties
-        return record_properties
-
-    @staticmethod
     def _determine_property_key_and_value_for_query_string(record):
 
         try:
@@ -439,7 +416,7 @@ class ForemanApiWrapper:
             http_method = "GET"
             if not identification_properties:
                 logging.debug("Getting Identification properties for record")
-                identification_properties = ForemanApiWrapper._get_record_identifcation_properties(minimal_record)
+                identification_properties = ForemanApiRecord.get_record_identifcation_properties(minimal_record)
             else:
                 logging.debug("Identification properties supplied as: {0}".format(identification_properties))
             logging.debug("Will attempt to find record using the following fields as query parameters:")

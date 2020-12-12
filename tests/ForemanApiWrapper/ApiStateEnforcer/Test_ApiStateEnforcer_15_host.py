@@ -140,3 +140,14 @@ class Test_ApiStateEnforcer_15_host(Test_ApiStateEnforcer):
         }
         modification_receipt = self.api_state_enforcer.ensure_state(desired_state, minimal_record)
         self.assertTrue(modification_receipt.changed)
+
+    def test__host__delete__adhoc_using_id(self):
+        # Ensure State
+        desired_state = "absent"
+        minimal_record = {
+            "host": {
+                "id": 25
+            }
+        }
+        modification_receipt = self.api_state_enforcer.ensure_state(desired_state, minimal_record)
+        self.assertTrue(modification_receipt.changed)

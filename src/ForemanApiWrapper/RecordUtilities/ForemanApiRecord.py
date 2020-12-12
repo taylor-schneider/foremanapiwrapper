@@ -22,20 +22,31 @@ def get_record_body_from_record(record):
     return record[record_type]
 
 
-def get_identifier_fields_for_record(record):
-
-    # Set the default identifier fields
-    identifier_fields = ["id", "name"]
-
-    # Get any fields that may be defined in the mapping file for the record type
+def get_record_identifcation_properties(record):
+    # This function will return an ordered list of properties which can be used to identify a record
+    # The order is intended to indicate the likelihood of producing a unique record
+    # when used in a query
+    record_body = get_record_body_from_record(record)
+    record_properties = list(record_body.keys())
     record_type = get_record_type_from_record(record)
-    if record_type in ApiRecordIdentificationProperties.keys():
-        additional_identifier_fields = ApiRecordIdentificationProperties[record_type]
-        for additional_identifier_field in additional_identifier_fields:
-            if additional_identifier_field not in identifier_fields:
-                identifier_fields.append(additional_identifier_field)
+    preferred_keys = []
 
-    return identifier_fields
+    # Some records have preferred identification properties
+    if record_type in ApiRecordIdentificationProperties.keys():
+        preferred_keys = ApiRecordIdentificationProperties[record_type]
+
+    # If the id was not listed, make sure it is at the front of the list
+    if "id" not in record_body.keys() and "id" not in record_body.keys():
+        preferred_keys = ["id"] + preferred_keys
+
+    # Remove the keys that are not found on the record
+    for preferred_key in preferred_keys.copy():
+        if preferred_key not in record_properties:
+            preferred_keys.remove(preferred_key)
+
+    record_properties = preferred_keys + record_properties
+    record_properties = list(set(record_properties))
+    return record_properties
 
 
 def get_identifier_from_record(record):
@@ -54,7 +65,7 @@ def get_identifier_from_record(record):
     # This function will return a tuple containing the field name and the value
     #
 
-    identifier_fields = get_identifier_fields_for_record(record)
+    identifier_fields = get_record_identifcation_properties(record)
     record_body = get_record_body_from_record(record)
     for identifier_field in identifier_fields:
         if identifier_field in record_body.keys():
@@ -94,7 +105,7 @@ def get_name_or_id_from_record(record):
 def confirm_modified_record_identity(record_identifier, record_type, record_to_confirm):
 
     # The name or id fields on a record can be used to confirm identity
-    # Using IDs is the safest choice, but not possible in all circomstances
+    # Using IDs is the safest choice, but not possible in all circumstances
     #       For example, when deleting records, one may only know the name upfront
     # In some cases other fields may be used based on the record type
     #       They are specified in the mappings
@@ -107,7 +118,7 @@ def confirm_modified_record_identity(record_identifier, record_type, record_to_c
         if record_type != record_to_confirm_type:
             raise Exception("The record types did not match: '{0}' vs '{1}'.".format(record_type, record_to_confirm_type))
 
-        identifier_fields = get_identifier_fields_for_record(record_to_confirm)
+        identifier_fields = get_record_identifcation_properties(record_to_confirm)
         record_body = get_record_body_from_record(record_to_confirm)
 
         for identifier_field in identifier_fields:
