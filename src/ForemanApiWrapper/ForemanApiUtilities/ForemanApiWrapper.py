@@ -350,11 +350,16 @@ class ForemanApiWrapper:
 
             logging .debug("Record {0} did not match.".format(x))
 
-        # If multiple records are matched we cannot determine the correct record
-        # if we found no records we also should stop here
-        if len(matched_records) != 1:
-            logging.debug("API returned {0} matches for field '{1}'.".format(len(matched_records), query_key))
+        # if we found no records we should stop here
+        if len(matched_records) == 0:
             return None
+
+        # If multiple records are matched we cannot determine the correct record
+        # This shouldn't happen, we will raise an exeption
+        if len(matched_records) != 1:
+            msg = "API returned {0} matches for field '{1}'.".format(len(matched_records), query_key)
+            logging.debug(msg)
+            raise Exception(msg)
 
         return matched_records[0]
 
@@ -388,7 +393,7 @@ class ForemanApiWrapper:
                 else:
                     return record
 
-        if record_body is  None:
+        if record_body is None:
             return None
 
         record = {record_type: record_body}

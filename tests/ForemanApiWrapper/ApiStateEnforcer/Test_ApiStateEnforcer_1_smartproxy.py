@@ -1,17 +1,18 @@
 from tests.ForemanApiWrapper.ApiStateEnforcer.Test_ApiStateEnforcer import Test_ApiStateEnforcer
-from ForemanApiWrapper.ForemanApiUtilities.ForemanApiWrapper import ForemanApiWrapper
-from ForemanApiWrapper.ApiStateEnforcer.ApiStateEnforcer import ApiStateEnforcer
 import logging
 
 # Configure logging format and level
 logFormat = '%(asctime)s,%(msecs)d %(levelname)-8s [%(module)s:%(funcName)s():%(lineno)d] %(message)s'
 
+
 logging.basicConfig(format=logFormat,
     datefmt='%Y-%m-%d:%H:%M:%S',
     level=logging.DEBUG)
 
+
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
+
 
 class Test_ApiStateEnforcer_1_smartproxy(Test_ApiStateEnforcer):
 

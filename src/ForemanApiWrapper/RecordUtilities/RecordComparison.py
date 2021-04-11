@@ -194,7 +194,7 @@ def normalize_record_properties_for_http_method(actual_record):
         record_body = ForemanApiRecord.get_record_body_from_record(actual_record)
 
         # Loop through the record's properties and perform transformations if necessary
-        normalized_record_body = record_body
+        normalized_record_body = record_body.copy()
         for actual_record_property_name, actual_record_property_value in record_body.items():
 
             # Ignore record types that do not have mappings defined
@@ -241,7 +241,7 @@ def normalize_record_properties_for_http_method(actual_record):
             # Remove the old property
             normalized_record_body.pop(actual_record_property_name)
 
-        normalized_record = { record_type : normalized_record_body}
+        normalized_record = {record_type: normalized_record_body}
         return normalized_record
     except Exception as e:
         raise Exception("An error occurred while normalizing the record.") from e
