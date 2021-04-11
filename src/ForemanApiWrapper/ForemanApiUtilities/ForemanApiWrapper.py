@@ -356,7 +356,7 @@ class ForemanApiWrapper:
 
         # If multiple records are matched we cannot determine the correct record
         # This shouldn't happen, we will raise an exeption
-        if len(matched_records) != 1:
+        if len(matched_records) > 1:
             msg = "API returned {0} matches for field '{1}'.".format(len(matched_records), query_key)
             logging.debug(msg)
             raise Exception(msg)
