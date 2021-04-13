@@ -29,9 +29,17 @@ class Test_ApiStateEnforcer_1_smartproxy(Test_ApiStateEnforcer):
                     {"name": "TFTP"},
                     {"name": "DNS"},
                     {"name": "DHCP"}
-                ]
+                ],
+                "url": "https://foreman.foobar.com:8443"
             }
         }
+
+    @staticmethod
+    def _delete_smartproxy(api_state_enforcer):
+        desired_state = "absent"
+        minimal_record = Test_ApiStateEnforcer_1_smartproxy._minimal_record()
+        modification_receipt = api_state_enforcer.ensure_state(desired_state, minimal_record)
+        return modification_receipt
 
     @staticmethod
     def _create_smartproxy(api_state_enforcer):
@@ -40,10 +48,13 @@ class Test_ApiStateEnforcer_1_smartproxy(Test_ApiStateEnforcer):
         modification_receipt = api_state_enforcer.ensure_state(desired_state, minimal_record)
         return modification_receipt
 
-    def test__smartproxy__create(self):
+    def test__smartproxy__create_does_not_exist(self):
+        # The smartproxy is created by default when installing foreman
+        # It is too difficult at this point in time to figure out how to
+        # orchestrate a siguation where one can be created, updated, or deleted.
         self.fail("Not implemented")
 
-    def test__smartproxy_exists(self):
+    def test__smartproxy_create_exists(self):
         Test_ApiStateEnforcer_1_smartproxy._create_smartproxy(self.api_state_enforcer)
         desired_state = "present"
         minimal_record = Test_ApiStateEnforcer_1_smartproxy._minimal_record()
@@ -51,7 +62,13 @@ class Test_ApiStateEnforcer_1_smartproxy(Test_ApiStateEnforcer):
         self.assertFalse(modification_receipt.changed)
 
     def test__smartproxy__update(self):
+        # The smartproxy is created by default when installing foreman
+        # It is too difficult at this point in time to figure out how to
+        # orchestrate a siguation where one can be created, updated, or deleted.
         self.fail("Not implemented")
 
     def test__smartproxy__delete(self):
+        # The smartproxy is created by default when installing foreman
+        # It is too difficult at this point in time to figure out how to
+        # orchestrate a siguation where one can be created, updated, or deleted.
         self.fail("Not implemented")

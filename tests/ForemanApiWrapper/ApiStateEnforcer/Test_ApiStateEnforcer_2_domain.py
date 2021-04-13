@@ -25,33 +25,88 @@ class Test_ApiStateEnforcer_2_domain(Test_ApiStateEnforcer):
 
         return {
             "domain": {
-                "name": "foreman.foobar.com",
+                "name": "test.foobar.com",
                 "dns_id": dns_id
             }
         }
 
     @staticmethod
+    def _delete_domain(api_state_enforcer, dns_id):
+        try:
+            desired_state = "absent"
+            minimal_record = Test_ApiStateEnforcer_2_domain._minimal_record(dns_id)
+            modification_receipt = api_state_enforcer.ensure_state(desired_state, minimal_record)
+            return modification_receipt
+        except:
+            logger.warning("Utility method failed to delete domain for test case")
+            pass
+
+    @staticmethod
     def _create_domain(api_state_enforcer, dns_id):
-        desired_state = "present"
-        minimal_record = Test_ApiStateEnforcer_2_domain._minimal_record(dns_id)
-        modification_receipt = api_state_enforcer.ensure_state(desired_state, minimal_record)
-        return modification_receipt
+        try:
+            desired_state = "present"
+            minimal_record = Test_ApiStateEnforcer_2_domain._minimal_record(dns_id)
+            modification_receipt = api_state_enforcer.ensure_state(desired_state, minimal_record)
+            return modification_receipt
+        except:
+            logger.warning("Utility method failed to create domain for test case")
+            pass
 
     def test__domain__create(self):
-        self.fail("Not implemented")
+        try:
+            # Create prereqs
+            modification_result = Test_ApiStateEnforcer_1_smartproxy._create_smartproxy(self.api_state_enforcer)
+            dns_id = modification_result.actual_record["smart_proxy"]["id"]
+            # Ensure the state
+            modification_receipt = Test_ApiStateEnforcer_2_domain._create_domain(self.api_state_enforcer, dns_id)
+            self.assertTrue(modification_receipt.changed)
+        finally:
+            # Cleanup from past runs
+            Test_ApiStateEnforcer_2_domain._delete_domain(self.api_state_enforcer, dns_id)
 
     def test__domain_exists(self):
-        # Create Prereqs
-        modification_result = Test_ApiStateEnforcer_1_smartproxy._create_smartproxy(self.api_state_enforcer)
-        dns_id = modification_result.actual_record["smart_proxy"]["id"]
-        # Ensure State
-        desired_state = "present"
-        minimal_record = Test_ApiStateEnforcer_2_domain._minimal_record(dns_id)
-        modification_receipt = self.api_state_enforcer.ensure_state(desired_state, minimal_record)
-        self.assertFalse(modification_receipt.changed)
+        try:
+            # Create Prereqs
+            modification_receipt = Test_ApiStateEnforcer_1_smartproxy._create_smartproxy(self.api_state_enforcer)
+            dns_id = modification_receipt.actual_record["smart_proxy"]["id"]
+            Test_ApiStateEnforcer_2_domain._create_domain(self.api_state_enforcer, dns_id)
+            # Ensure State
+            desired_state = "present"
+            minimal_record = Test_ApiStateEnforcer_2_domain._minimal_record(dns_id)
+            modification_receipt = self.api_state_enforcer.ensure_state(desired_state, minimal_record)
+            self.assertFalse(modification_receipt.changed)
+        finally:
+            # Cleanup from past runs
+            Test_ApiStateEnforcer_2_domain._delete_domain(self.api_state_enforcer, dns_id)
 
     def test__domain__update(self):
-        self.fail("Not implemented")
+        try:
+            # Create Prereqs
+            modification_receipt = Test_ApiStateEnforcer_1_smartproxy._create_smartproxy(self.api_state_enforcer)
+            dns_id = modification_receipt.actual_record["smart_proxy"]["id"]
+            modification_receipt = Test_ApiStateEnforcer_2_domain._create_domain(self.api_state_enforcer, dns_id)
+
+            # Ensure State
+            desired_state = "present"
+            update_record = modification_receipt.actual_record.copy()
+            update_record["domain"]["name"] = "modify.foobar.com"
+            modification_receipt = self.api_state_enforcer.ensure_state(desired_state, update_record)
+            self.assertTrue(modification_receipt.changed)
+        finally:
+            # Cleanup from past runs
+            Test_ApiStateEnforcer_2_domain._delete_domain(self.api_state_enforcer, dns_id)
 
     def test__domain__delete(self):
-        self.fail("Not implemented")
+        try:
+            # Create Prereqs
+            modification_receipt = Test_ApiStateEnforcer_1_smartproxy._create_smartproxy(self.api_state_enforcer)
+            dns_id = modification_receipt.actual_record["smart_proxy"]["id"]
+            Test_ApiStateEnforcer_2_domain._create_domain(self.api_state_enforcer, dns_id)
+            # Ensure State
+            desired_state = "absent"
+            minimal_record = Test_ApiStateEnforcer_2_domain._minimal_record(dns_id)
+            modification_receipt = self.api_state_enforcer.ensure_state(desired_state, minimal_record)
+            self.assertTrue(modification_receipt.changed)
+        finally:
+            # Cleanup from past runs
+            Test_ApiStateEnforcer_2_domain._delete_domain(self.api_state_enforcer, dns_id)

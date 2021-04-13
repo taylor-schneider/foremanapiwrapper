@@ -24,7 +24,7 @@ class Test_ApiStateEnforcer_3_subnet(Test_ApiStateEnforcer):
 
         return {
             "subnet": {
-                "name": "PxeSubnet",
+                "name": "Test Subnet",
                 "network": "15.0.0.0",
                 "mask": "255.0.0.0",
                 "gateway": "15.1.1.1",
@@ -39,33 +39,102 @@ class Test_ApiStateEnforcer_3_subnet(Test_ApiStateEnforcer):
         }
 
     @staticmethod
+    def _delete_subnet(api_state_enforcer, domain_id, dns_id, dhcp_id, tftp_id):
+        try:
+            desired_state = "absent"
+            minimal_record = Test_ApiStateEnforcer_3_subnet._minimal_record(domain_id, dns_id, dhcp_id, tftp_id)
+            modification_receipt = api_state_enforcer.ensure_state(desired_state, minimal_record)
+            return modification_receipt
+        except:
+            logger.warning("Utility method failed to delete subnet for test case")
+
+    @staticmethod
     def _create_subnet(api_state_enforcer, domain_id, dns_id, dhcp_id, tftp_id):
-        desired_state = "present"
-        minimal_record = Test_ApiStateEnforcer_3_subnet._minimal_record(domain_id, dns_id, dhcp_id, tftp_id)
-        modification_receipt = api_state_enforcer.ensure_state(desired_state, minimal_record)
-        return modification_receipt
+        try:
+            desired_state = "present"
+            minimal_record = Test_ApiStateEnforcer_3_subnet._minimal_record(domain_id, dns_id, dhcp_id, tftp_id)
+            modification_receipt = api_state_enforcer.ensure_state(desired_state, minimal_record)
+            return modification_receipt
+        except:
+            logger.warning("Utility method failed to create subnet for test case")
 
     def test__subnet__create(self):
-        self.fail("Not implemented")
 
-    def test__subnet_exists(self):
-        # Create prereqs
+        # Create the smartproxy and domain
         modification_receipt = Test_ApiStateEnforcer_1_smartproxy._create_smartproxy(self.api_state_enforcer)
         smartproxy_id = modification_receipt.actual_record["smart_proxy"]["id"]
         dns_id = smartproxy_id
         dhcp_id = smartproxy_id
         tftp_id = smartproxy_id
         modification_receipt = Test_ApiStateEnforcer_2_domain._create_domain(self.api_state_enforcer, dns_id)
+
+
+        # Delete the subnet
         domain_id = modification_receipt.actual_record["domain"]["id"]
-        Test_ApiStateEnforcer_3_subnet._create_subnet(self.api_state_enforcer, domain_id, dns_id, dhcp_id, tftp_id)
-        # Ensure State
-        desired_state = "present"
-        minimal_record = Test_ApiStateEnforcer_3_subnet._minimal_record(domain_id, dns_id, dhcp_id, tftp_id)
-        modification_receipt = self.api_state_enforcer.ensure_state(desired_state, minimal_record)
-        self.assertFalse(modification_receipt.changed)
+
+
+        Test_ApiStateEnforcer_3_subnet._delete_subnet(self.api_state_enforcer, domain_id, dns_id, dhcp_id, tftp_id)
+
+    def test__subnet_exists(self):
+        try:
+            # Create prereqs
+            modification_receipt = Test_ApiStateEnforcer_1_smartproxy._create_smartproxy(self.api_state_enforcer)
+            smartproxy_id = modification_receipt.actual_record["smart_proxy"]["id"]
+            dns_id = smartproxy_id
+            dhcp_id = smartproxy_id
+            tftp_id = smartproxy_id
+            modification_receipt = Test_ApiStateEnforcer_2_domain._create_domain(self.api_state_enforcer, dns_id)
+            domain_id = modification_receipt.actual_record["domain"]["id"]
+            Test_ApiStateEnforcer_3_subnet._create_subnet(self.api_state_enforcer, domain_id, dns_id, dhcp_id, tftp_id)
+            # Ensure State
+            desired_state = "present"
+            minimal_record = Test_ApiStateEnforcer_3_subnet._minimal_record(domain_id, dns_id, dhcp_id, tftp_id)
+            modification_receipt = self.api_state_enforcer.ensure_state(desired_state, minimal_record)
+            self.assertFalse(modification_receipt.changed)
+        finally:
+            Test_ApiStateEnforcer_3_subnet._delete_subnet(self.api_state_enforcer, domain_id, dns_id, dhcp_id, tftp_id)
+            Test_ApiStateEnforcer_2_domain._delete_domain(self.api_state_enforcer, dns_id)
 
     def test__subnet__update(self):
-        self.fail("Not implemented")
+        try:
+            # Create prereqs
+            modification_receipt = Test_ApiStateEnforcer_1_smartproxy._create_smartproxy(self.api_state_enforcer)
+            smartproxy_id = modification_receipt.actual_record["smart_proxy"]["id"]
+            dns_id = smartproxy_id
+            dhcp_id = smartproxy_id
+            tftp_id = smartproxy_id
+            modification_receipt = Test_ApiStateEnforcer_2_domain._create_domain(self.api_state_enforcer, dns_id)
+            domain_id = modification_receipt.actual_record["domain"]["id"]
+            Test_ApiStateEnforcer_3_subnet._create_subnet(self.api_state_enforcer, domain_id, dns_id, dhcp_id, tftp_id)
+            # Ensure State
+            desired_state = "present"
+            minimal_record = Test_ApiStateEnforcer_3_subnet._minimal_record(domain_id, dns_id, dhcp_id, tftp_id)
+            minimal_record["subnet"]["name"] = "Modified Subnet"
+            modification_receipt = self.api_state_enforcer.ensure_state(desired_state, minimal_record)
+            self.assertFalse(modification_receipt.changed)
+        finally:
+            Test_ApiStateEnforcer_3_subnet._delete_subnet(self.api_state_enforcer, domain_id, dns_id, dhcp_id, tftp_id)
+            Test_ApiStateEnforcer_2_domain._delete_domain(self.api_state_enforcer, dns_id)
 
     def test__subnet__delete(self):
-        self.fail("Not implemented")
+        try:
+            # Create prereqs
+            modification_receipt = Test_ApiStateEnforcer_1_smartproxy._create_smartproxy(self.api_state_enforcer)
+            smartproxy_id = modification_receipt.actual_record["smart_proxy"]["id"]
+            dns_id = smartproxy_id
+            dhcp_id = smartproxy_id
+            tftp_id = smartproxy_id
+            modification_receipt = Test_ApiStateEnforcer_2_domain._create_domain(self.api_state_enforcer, dns_id)
+            domain_id = modification_receipt.actual_record["domain"]["id"]
+            Test_ApiStateEnforcer_3_subnet._create_subnet(self.api_state_enforcer, domain_id, dns_id, dhcp_id, tftp_id)
+            # Ensure State
+            desired_state = "absent"
+            minimal_record = Test_ApiStateEnforcer_3_subnet._minimal_record(domain_id, dns_id, dhcp_id, tftp_id)
+            minimal_record["subnet"]["name"] = "Modified Subnet"
+            modification_receipt = self.api_state_enforcer.ensure_state(desired_state, minimal_record)
+            self.assertFalse(modification_receipt.changed)
+        except Exception as e:
+            pass
+        finally:
+            Test_ApiStateEnforcer_3_subnet._delete_subnet(self.api_state_enforcer, domain_id, dns_id, dhcp_id, tftp_id)
+            Test_ApiStateEnforcer_2_domain._delete_domain(self.api_state_enforcer, dns_id)

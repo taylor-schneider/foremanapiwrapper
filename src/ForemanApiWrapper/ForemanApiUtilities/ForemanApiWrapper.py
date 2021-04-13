@@ -2,6 +2,7 @@ import requests
 import json
 import logging
 import sys
+import os
 from requests.auth import HTTPBasicAuth
 from ForemanApiWrapper.ForemanApiUtilities.ForemanApiCallException import ForemanApiCallException
 from ForemanApiWrapper.RecordUtilities import ForemanApiRecord
@@ -34,7 +35,8 @@ class ForemanApiWrapper:
         self.verify_ssl = verify_ssl
 
         if not verify_ssl:
-            #os.environ["PYTHONWARNINGS"] = "ignore:Unverified HTTPS request"
+
+            os.environ["PYTHONWARNINGS"] = "ignore:Unverified HTTPS request"
             import warnings
             from requests.packages.urllib3.exceptions import InsecureRequestWarning
             warnings.simplefilter('ignore', InsecureRequestWarning)

@@ -11,7 +11,7 @@ from ForemanApiWrapper.RecordUtilities import ForemanApiRecord
 logger = logging.getLogger()
 
 
-class ApiStateEnforcer():
+class ApiStateEnforcer:
 
     record_mismatch_message = "The actual record did not match the desired record."
     record_already_absent_message = "The record is already absent."
