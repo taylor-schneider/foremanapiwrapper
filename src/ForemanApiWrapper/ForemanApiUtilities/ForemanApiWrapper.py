@@ -592,7 +592,11 @@ class ForemanApiWrapper:
             # Determine the url we will be submitting to
             http_method = "DELETE"
             base_delete_url = self._determine_api_endpoint_for_record(minimal_record, include_query=False)
-            delete_url = "{0}/{1}".format(base_delete_url, identification_field_value)
+            delete_endpoint = "{0}/{1}".format(base_delete_url, identification_field_value)
+            if PY3:
+                encoded_delete_endpoint = urllib.parse.quote(delete_endpoint)
+            else:
+                encoded_delete_endpoint = urllib.quote(delete_endpoint)
 
             # We may need to convert the record based on the API endpoint being used
             # The API is inconsistent in the way it represents data
@@ -600,7 +604,7 @@ class ForemanApiWrapper:
 
             # The api call will expect the arguments in a certain form
             api_call_arguments = ForemanApiWrapper._get_api_call_arguments(record_for_delete)
-            deleted_record_body = self.make_api_call(delete_url, http_method, api_call_arguments, None)
+            deleted_record_body = self.make_api_call(encoded_delete_endpoint, http_method, api_call_arguments, None)
             deleted_record = {
                 minimal_record_type: deleted_record_body
             }
