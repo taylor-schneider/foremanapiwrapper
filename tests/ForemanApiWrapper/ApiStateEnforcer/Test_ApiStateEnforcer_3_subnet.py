@@ -58,7 +58,7 @@ class Test_ApiStateEnforcer_3_subnet(Test_ApiStateEnforcer):
         except:
             logger.warning("Utility method failed to create subnet for test case")
 
-    def test__subnet__create(self):
+    def test__subnet__create__does_not_exist(self):
 
         # Create the smartproxy and domain
         modification_receipt = Test_ApiStateEnforcer_1_smartproxy._create_smartproxy(self.api_state_enforcer)
@@ -75,7 +75,7 @@ class Test_ApiStateEnforcer_3_subnet(Test_ApiStateEnforcer):
 
         Test_ApiStateEnforcer_3_subnet._delete_subnet(self.api_state_enforcer, domain_id, dns_id, dhcp_id, tftp_id)
 
-    def test__subnet_exists(self):
+    def test__subnet__create__exists(self):
         try:
             # Create prereqs
             modification_receipt = Test_ApiStateEnforcer_1_smartproxy._create_smartproxy(self.api_state_enforcer)
