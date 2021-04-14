@@ -616,7 +616,7 @@ class ForemanApiWrapper:
             except Exception as e:
                 raise ModifiedRecordMismatchException(
                     self._modified_record_mismatch_message,
-                    delete_url,
+                    encoded_delete_endpoint,
                     http_method,
                     minimal_record,
                     deleted_record)

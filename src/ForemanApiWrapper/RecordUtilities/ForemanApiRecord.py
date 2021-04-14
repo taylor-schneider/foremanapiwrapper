@@ -38,7 +38,7 @@ def get_record_identifcation_properties(record):
     # Some records have preferred identification properties
     # Retrieve them and add them to the list
     if record_type in ApiRecordIdentificationProperties.keys():
-        identification_properties += ApiRecordIdentificationProperties[record_type]
+        identification_properties = ApiRecordIdentificationProperties[record_type]
 
     # Remove the keys that are not found on the record
     record_body = get_record_body_from_record(record)

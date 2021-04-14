@@ -108,6 +108,12 @@ def _compare_lists(record_type, minimal_record_state, actual_record_state):
 
     list_mismatch_message = "The lists did not match."
 
+    # If the minimal state list is empty, but the actual state is not
+    # We can return false right away
+    if len(minimal_record_state) == 0 and len(actual_record_state) > 0:
+        length_mismatch_message = "The minimal record list was empty while the actual record list was not."
+        return False, " ".join([list_mismatch_message, length_mismatch_message])
+
     # If the minimal state list is larger than the actual state,
     # something is definitely missing
     if len(minimal_record_state) > len(actual_record_state):

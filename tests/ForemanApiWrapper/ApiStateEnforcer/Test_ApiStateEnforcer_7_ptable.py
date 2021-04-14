@@ -57,6 +57,8 @@ class Test_ApiStateEnforcer_7_ptable(Test_ApiStateEnforcer):
         modification_receipt = api_state_enforcer.ensure_state(desired_state, minimal_record)
         return modification_receipt
 
+
+
     def test__ptable__create(self):
         self.fail("Not implemented")
 

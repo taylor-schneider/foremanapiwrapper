@@ -93,7 +93,7 @@ class Test_ApiStateEnforcer_2_domain(Test_ApiStateEnforcer):
             modification_receipt = self.api_state_enforcer.ensure_state(desired_state, update_record)
             self.assertTrue(modification_receipt.changed)
         finally:
-            # Cleanup from past runs
+            self.api_state_enforcer.ensure_state("absent", update_record)
             Test_ApiStateEnforcer_2_domain._delete_domain(self.api_state_enforcer, dns_id)
 
     def test__domain__delete(self):
