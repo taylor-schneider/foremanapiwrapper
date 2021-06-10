@@ -1,4 +1,7 @@
-# Foreman API Utilities
+# Foreman API Wrapper
+This library provides an idempotent, declarative, object oriented method for interfacing with the Foreman API. 
+I decided to write this library to learn about the API and to avoid the shortcomings of the hammer cli which I observed.
+
 ## Overview
 The Foreman Projects is a complete lifecycle management tool for physical and virtual servers. https://www.theforeman.org/
 
